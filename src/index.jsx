@@ -35,22 +35,20 @@ const main = async () => {
 
   const outputFile = core.getInput("output_file") || "./diagram.svg"
 
-  await fs.writeFileSync(outputFile, componentCodeString)
+  // await fs.writeFileSync(outputFile, componentCodeString)
 
 
   // add outputFile to git
   // await execWithOutput('git', ['add', outputFile])
 
-
-
-  await octokit.repos.createStatus({
+  await octokit.repo.updateFile({
     owner: repo.owner.login,
     repo: repo.name,
+    path: outputFile,
+    content: componentCodeString,
     sha: context.sha,
-    state: 'success',
-    target_url: `${context.base_url}/${outputFile}`,
-    description: 'Repo visualizer: updated diagram',
-    context: 'Repo visualizer: updated diagram',
+    message: 'Repo visualizer: updated diagram',
+    branch: context.branch
   })
   // await exec('git', ['add', outputFile])
   // const diff = await execWithOutput('git', ['status', '--porcelain', outputFile])

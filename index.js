@@ -19525,15 +19525,14 @@ var main = async () => {
     data
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
-  await import_fs2.default.writeFileSync(outputFile, componentCodeString);
-  await octokit.repos.createStatus({
+  await octokit.repo.updateFile({
     owner: repo.owner.login,
     repo: repo.name,
+    path: outputFile,
+    content: componentCodeString,
     sha: context.sha,
-    state: "success",
-    target_url: `${context.base_url}/${outputFile}`,
-    description: "Repo visualizer: updated diagram",
-    context: "Repo visualizer: updated diagram"
+    message: "Repo visualizer: updated diagram",
+    branch: context.branch
   });
   console.log("All set!");
 };
