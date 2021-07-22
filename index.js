@@ -19515,28 +19515,52 @@ var getSortOrder = (item, cachedOrders, i = 0) => {
 var main = async () => {
   core.info("[INFO] Usage https://github.com/githubocto/repo-visualizer#readme");
   core.startGroup("Configuration");
-  const myToken = core.getInput("github_token");
-  const octokit = import_github.default.getOctokit(myToken);
-  const context = import_github.default.context;
-  const repo = context.repo;
+  const username = "repo-visualizer";
+  await (0, import_exec.exec)("git", ["config", "user.name", username]);
+  await (0, import_exec.exec)("git", [
+    "config",
+    "user.email",
+    "wattenberger@github.com"
+  ]);
   core.endGroup();
   const data = await processDir(`./`);
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
-  await octokit.repo.updateFile({
-    owner: repo.owner.login,
-    repo: repo.name,
-    path: outputFile,
-    content: componentCodeString,
-    sha: context.sha,
-    message: "Repo visualizer: updated diagram",
-    branch: context.branch
-  });
+  await import_fs2.default.writeFileSync(outputFile, componentCodeString);
+  await (0, import_exec.exec)("git", ["add", outputFile]);
+  const diff = await execWithOutput("git", ["status", "--porcelain", outputFile]);
+  core.info(`diff: ${diff}`);
+  if (!diff) {
+    core.info("[INFO] No changes to the repo detected, exiting");
+    return;
+  }
+  (0, import_exec.exec)("git", ["commit", "-m", "Repo visualizer: updated diagram"]);
+  await (0, import_exec.exec)("git", ["push"]);
   console.log("All set!");
 };
 main();
+function execWithOutput(command, args) {
+  return new Promise((resolve, reject) => {
+    try {
+      (0, import_exec.exec)(command, args, {
+        listeners: {
+          stdout: function(res) {
+            core.info(res.toString());
+            resolve(res.toString());
+          },
+          stderr: function(res) {
+            core.info(res.toString());
+            reject(res.toString());
+          }
+        }
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
 /*
 object-assign
 (c) Sindre Sorhus

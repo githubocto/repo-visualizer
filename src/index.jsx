@@ -12,19 +12,19 @@ const main = async () => {
   core.info('[INFO] Usage https://github.com/githubocto/repo-visualizer#readme')
 
   core.startGroup('Configuration')
-  const myToken = core.getInput('github_token');
-  const octokit = github.getOctokit(myToken)
-  const context = github.context;
-  const repo = context.repo;
+  // const myToken = core.getInput('github_token');
+  // const octokit = github.getOctokit(myToken)
+  // const context = github.context;
+  // const repo = context.repo;
 
-  // const username = 'repo-visualizer'
-  // await exec('git', ['config', 'user.name', username])
-  // await exec('git', [
-  //   'config',
-  //   'user.email',
-  //   // `${username}@users.noreply.github.com`,
-  //   "wattenberger@github.com"
-  // ])
+  const username = 'repo-visualizer'
+  await exec('git', ['config', 'user.name', username])
+  await exec('git', [
+    'config',
+    'user.email',
+    // `${username}@users.noreply.github.com`,
+    "wattenberger@github.com"
+  ])
 
   core.endGroup()
 
@@ -35,31 +35,34 @@ const main = async () => {
 
   const outputFile = core.getInput("output_file") || "./diagram.svg"
 
-  // await fs.writeFileSync(outputFile, componentCodeString)
+  //
+
+  await fs.writeFileSync(outputFile, componentCodeString)
 
 
   // add outputFile to git
   // await execWithOutput('git', ['add', outputFile])
 
-  await octokit.repo.updateFile({
-    owner: repo.owner.login,
-    repo: repo.name,
-    path: outputFile,
-    content: componentCodeString,
-    sha: context.sha,
-    message: 'Repo visualizer: updated diagram',
-    branch: context.branch
-  })
-  // await exec('git', ['add', outputFile])
-  // const diff = await execWithOutput('git', ['status', '--porcelain', outputFile])
-  // core.info(`diff: ${diff}`)
-  // if (!diff) {
-  //   core.info('[INFO] No changes to the repo detected, exiting')
-  //   return
-  // }
+  // await octokit.rest.git.createCommit
+  //   repo.updateFile({
+  //   owner: repo.owner.login,
+  //   repo: repo.name,
+  //   path: outputFile,
+  //   content: componentCodeString,
+  //   sha: context.sha,
+  //   message: 'Repo visualizer: updated diagram',
+  //   branch: context.branch
+  // })
+  await exec('git', ['add', outputFile])
+  const diff = await execWithOutput('git', ['status', '--porcelain', outputFile])
+  core.info(`diff: ${diff}`)
+  if (!diff) {
+    core.info('[INFO] No changes to the repo detected, exiting')
+    return
+  }
 
-  // exec('git', ['commit', '-m', "Repo visualizer: updated diagram"])
-  // await exec('git', ['push'])
+  exec('git', ['commit', '-m', "Repo visualizer: updated diagram"])
+  await exec('git', ['push'])
 
   console.log("All set!")
 }
