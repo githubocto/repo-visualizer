@@ -1,4 +1,4 @@
-import { github } from '@actions/github'
+import github from '@actions/github'
 import { exec } from '@actions/exec'
 import * as core from '@actions/core'
 import React from 'react';

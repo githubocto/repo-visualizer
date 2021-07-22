@@ -19516,8 +19516,8 @@ var main = async () => {
   core.info("[INFO] Usage https://github.com/githubocto/repo-visualizer#readme");
   core.startGroup("Configuration");
   const myToken = core.getInput("github_token");
-  const octokit = import_github.github.getOctokit(myToken);
-  const context = import_github.github.context;
+  const octokit = import_github.default.getOctokit(myToken);
+  const context = import_github.default.context;
   const repo = context.repo;
   core.endGroup();
   const data = await processDir(`./`);
