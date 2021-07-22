@@ -45,19 +45,24 @@ const main = async () => {
 
 main()
 
-function execWithOutput(command, options) {
+function execWithOutput(command, args) {
   return new Promise(function (resolve, reject) {
-    exec(command, options, {
-      listeners: {
-        stdout: function (res) {
-          resolve(res.toString())
-        },
-        stderr: function (res) {
-          core.info(res.toString())
-          reject(res.toString())
+    try {
+      exec(command, args, {
+        listeners: {
+          stdout: function (res) {
+            core.info(res.toString())
+            resolve(res.toString())
+          },
+          stderr: function (res) {
+            core.info(res.toString())
+            reject(res.toString())
+          }
         }
-      }
-    })
+      })
+    } catch (e) {
+      reject(e)
+    }
   })
 }
 
