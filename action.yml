@@ -6,7 +6,7 @@ inputs:
     description: "A path (relative to the root of your repo) to where you would like the diagram to live. For example: images/diagram.svg. Default: diagram.svg"
     required: false
   github_token:
-    description: "We need your GitHub token to update the diagram. Specify it like: with: github_token: ${{ secrets.GITHUB_TOKEN }}"
+    description: "We need your GitHub token to update the diagram."
     required: true
 runs:
   using: "node12"
