@@ -15079,6 +15079,7 @@ var main = async () => {
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);
   await (0, import_exec.exec)("git", ["add", outputFile]);
   const diff = await execWithOutput("git", ["diff", "--exit-code", outputFile]);
+  core.info(`diff: ${diff}`);
   if (!diff) {
     core.info("[INFO] No changes to the repo detected, exiting");
     return;
@@ -15093,7 +15094,7 @@ function execWithOutput(command, options) {
     (0, import_exec.exec)(command, options, {
       listeners: {
         stdout: function(res) {
-          resolve(res);
+          resolve(res.toString());
         },
         stderr: function(res) {
           reject(res);
