@@ -30,7 +30,7 @@ const main = async () => {
   await fs.writeFileSync(outputFile, componentCodeString)
 
   await exec('git', ['add', outputFile])
-  const diff = await execWithOutput('git', ['diff', '--exit-code', outputFile])
+  const diff = await execWithOutput('git', ['diff', outputFile])
   core.info(`diff: ${diff}`)
   if (!diff) {
     core.info('[INFO] No changes to the repo detected, exiting')

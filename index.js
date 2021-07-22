@@ -15078,7 +15078,7 @@ var main = async () => {
   const outputFile = core.getInput("output_file") || "./diagram.svg";
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);
   await (0, import_exec.exec)("git", ["add", outputFile]);
-  const diff = await execWithOutput("git", ["diff", "--exit-code", outputFile]);
+  const diff = await execWithOutput("git", ["diff", outputFile]);
   core.info(`diff: ${diff}`);
   if (!diff) {
     core.info("[INFO] No changes to the repo detected, exiting");
