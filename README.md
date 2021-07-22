@@ -10,8 +10,13 @@ A path (relative to the root of your repo) to where you would like the diagram t
 
 ## Example usage
 
+You'll need to run the `actions/checkout` Action beforehand, to check out the code.
+
 ```
-uses: githubocto/repo-visualizer@v1.0
+- name: Checkout code
+  uses: actions/checkout@master
+- name: Update diagram
+  uses: githubocto/repo-visualizer@main
   with:
     output_file: 'images/diagram.svg'
 ```
