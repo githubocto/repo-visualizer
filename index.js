@@ -1037,32 +1037,32 @@ var require_exec = __commonJS({
     function getExecOutput(commandLine, args, options) {
       var _a, _b;
       return __awaiter(this, void 0, void 0, function* () {
-        let stdout2 = "";
-        let stderr2 = "";
+        let stdout = "";
+        let stderr = "";
         const stdoutDecoder = new string_decoder_1.StringDecoder("utf8");
         const stderrDecoder = new string_decoder_1.StringDecoder("utf8");
         const originalStdoutListener = (_a = options === null || options === void 0 ? void 0 : options.listeners) === null || _a === void 0 ? void 0 : _a.stdout;
         const originalStdErrListener = (_b = options === null || options === void 0 ? void 0 : options.listeners) === null || _b === void 0 ? void 0 : _b.stderr;
         const stdErrListener = (data) => {
-          stderr2 += stderrDecoder.write(data);
+          stderr += stderrDecoder.write(data);
           if (originalStdErrListener) {
             originalStdErrListener(data);
           }
         };
         const stdOutListener = (data) => {
-          stdout2 += stdoutDecoder.write(data);
+          stdout += stdoutDecoder.write(data);
           if (originalStdoutListener) {
             originalStdoutListener(data);
           }
         };
         const listeners = Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.listeners), { stdout: stdOutListener, stderr: stdErrListener });
         const exitCode = yield exec2(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
-        stdout2 += stdoutDecoder.end();
-        stderr2 += stderrDecoder.end();
+        stdout += stdoutDecoder.end();
+        stderr += stderrDecoder.end();
         return {
           exitCode,
-          stdout: stdout2,
-          stderr: stderr2
+          stdout,
+          stderr
         };
       });
     }
@@ -15090,16 +15090,16 @@ var main = async () => {
 main();
 function execWithOutput(command, options) {
   return new Promise(function(resolve, reject) {
-    (0, import_exec.exec)(command, {
+    (0, import_exec.exec)(command, options, {
       listeners: {
-        stdout: function(data) {
-          resolve(stdout);
+        stdout: function(res) {
+          resolve(res);
         },
-        stderr: function(data) {
-          reject(stderr);
+        stderr: function(res) {
+          reject(res);
         }
       }
-    }, options);
+    });
   });
 }
 /*

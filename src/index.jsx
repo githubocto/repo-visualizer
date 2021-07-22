@@ -46,16 +46,16 @@ main()
 
 function execWithOutput(command, options) {
   return new Promise(function (resolve, reject) {
-    exec(command, {
+    exec(command, options, {
       listeners: {
-        stdout: function (data) {
-          resolve(stdout)
+        stdout: function (res) {
+          resolve(res)
         },
-        stderr: function (data) {
-          reject(stderr)
+        stderr: function (res) {
+          reject(res)
         }
       }
-    }, options)
+    })
   })
 }
 
