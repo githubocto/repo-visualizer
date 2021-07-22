@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "node_modules/.bin/esbuild --target=es2020 ./src/index.jsx --bundle --platform=node --outfile=index.js",
+    "build": "node_modules/.bin/esbuild --target=es2019 ./src/index.jsx --bundle --platform=node --outfile=index.js",
     "prepare": "husky install"
   },
   "dependencies": {

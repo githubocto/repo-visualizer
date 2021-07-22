@@ -20,6 +20,1406 @@ var __toModule = (module2) => {
   return __reExport(__markAsModule(__defProp(module2 != null ? __create(__getProtoOf(module2)) : {}, "default", module2 && module2.__esModule && "default" in module2 ? { get: () => module2.default, enumerable: true } : { value: module2, enumerable: true })), module2);
 };
 
+// node_modules/@actions/io/lib/io-util.js
+var require_io_util = __commonJS({
+  "node_modules/@actions/io/lib/io-util.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    var _a;
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.getCmdPath = exports2.tryGetExecutablePath = exports2.isRooted = exports2.isDirectory = exports2.exists = exports2.IS_WINDOWS = exports2.unlink = exports2.symlink = exports2.stat = exports2.rmdir = exports2.rename = exports2.readlink = exports2.readdir = exports2.mkdir = exports2.lstat = exports2.copyFile = exports2.chmod = void 0;
+    var fs3 = __importStar(require("fs"));
+    var path = __importStar(require("path"));
+    _a = fs3.promises, exports2.chmod = _a.chmod, exports2.copyFile = _a.copyFile, exports2.lstat = _a.lstat, exports2.mkdir = _a.mkdir, exports2.readdir = _a.readdir, exports2.readlink = _a.readlink, exports2.rename = _a.rename, exports2.rmdir = _a.rmdir, exports2.stat = _a.stat, exports2.symlink = _a.symlink, exports2.unlink = _a.unlink;
+    exports2.IS_WINDOWS = process.platform === "win32";
+    function exists(fsPath) {
+      return __awaiter(this, void 0, void 0, function* () {
+        try {
+          yield exports2.stat(fsPath);
+        } catch (err) {
+          if (err.code === "ENOENT") {
+            return false;
+          }
+          throw err;
+        }
+        return true;
+      });
+    }
+    exports2.exists = exists;
+    function isDirectory(fsPath, useStat = false) {
+      return __awaiter(this, void 0, void 0, function* () {
+        const stats = useStat ? yield exports2.stat(fsPath) : yield exports2.lstat(fsPath);
+        return stats.isDirectory();
+      });
+    }
+    exports2.isDirectory = isDirectory;
+    function isRooted(p) {
+      p = normalizeSeparators(p);
+      if (!p) {
+        throw new Error('isRooted() parameter "p" cannot be empty');
+      }
+      if (exports2.IS_WINDOWS) {
+        return p.startsWith("\\") || /^[A-Z]:/i.test(p);
+      }
+      return p.startsWith("/");
+    }
+    exports2.isRooted = isRooted;
+    function tryGetExecutablePath(filePath, extensions) {
+      return __awaiter(this, void 0, void 0, function* () {
+        let stats = void 0;
+        try {
+          stats = yield exports2.stat(filePath);
+        } catch (err) {
+          if (err.code !== "ENOENT") {
+            console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+          }
+        }
+        if (stats && stats.isFile()) {
+          if (exports2.IS_WINDOWS) {
+            const upperExt = path.extname(filePath).toUpperCase();
+            if (extensions.some((validExt) => validExt.toUpperCase() === upperExt)) {
+              return filePath;
+            }
+          } else {
+            if (isUnixExecutable(stats)) {
+              return filePath;
+            }
+          }
+        }
+        const originalFilePath = filePath;
+        for (const extension of extensions) {
+          filePath = originalFilePath + extension;
+          stats = void 0;
+          try {
+            stats = yield exports2.stat(filePath);
+          } catch (err) {
+            if (err.code !== "ENOENT") {
+              console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+            }
+          }
+          if (stats && stats.isFile()) {
+            if (exports2.IS_WINDOWS) {
+              try {
+                const directory = path.dirname(filePath);
+                const upperName = path.basename(filePath).toUpperCase();
+                for (const actualName of yield exports2.readdir(directory)) {
+                  if (upperName === actualName.toUpperCase()) {
+                    filePath = path.join(directory, actualName);
+                    break;
+                  }
+                }
+              } catch (err) {
+                console.log(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
+              }
+              return filePath;
+            } else {
+              if (isUnixExecutable(stats)) {
+                return filePath;
+              }
+            }
+          }
+        }
+        return "";
+      });
+    }
+    exports2.tryGetExecutablePath = tryGetExecutablePath;
+    function normalizeSeparators(p) {
+      p = p || "";
+      if (exports2.IS_WINDOWS) {
+        p = p.replace(/\//g, "\\");
+        return p.replace(/\\\\+/g, "\\");
+      }
+      return p.replace(/\/\/+/g, "/");
+    }
+    function isUnixExecutable(stats) {
+      return (stats.mode & 1) > 0 || (stats.mode & 8) > 0 && stats.gid === process.getgid() || (stats.mode & 64) > 0 && stats.uid === process.getuid();
+    }
+    function getCmdPath() {
+      var _a2;
+      return (_a2 = process.env["COMSPEC"]) !== null && _a2 !== void 0 ? _a2 : `cmd.exe`;
+    }
+    exports2.getCmdPath = getCmdPath;
+  }
+});
+
+// node_modules/@actions/io/lib/io.js
+var require_io = __commonJS({
+  "node_modules/@actions/io/lib/io.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.findInPath = exports2.which = exports2.mkdirP = exports2.rmRF = exports2.mv = exports2.cp = void 0;
+    var assert_1 = require("assert");
+    var childProcess = __importStar(require("child_process"));
+    var path = __importStar(require("path"));
+    var util_1 = require("util");
+    var ioUtil = __importStar(require_io_util());
+    var exec2 = util_1.promisify(childProcess.exec);
+    var execFile = util_1.promisify(childProcess.execFile);
+    function cp(source, dest, options = {}) {
+      return __awaiter(this, void 0, void 0, function* () {
+        const { force, recursive, copySourceDirectory } = readCopyOptions(options);
+        const destStat = (yield ioUtil.exists(dest)) ? yield ioUtil.stat(dest) : null;
+        if (destStat && destStat.isFile() && !force) {
+          return;
+        }
+        const newDest = destStat && destStat.isDirectory() && copySourceDirectory ? path.join(dest, path.basename(source)) : dest;
+        if (!(yield ioUtil.exists(source))) {
+          throw new Error(`no such file or directory: ${source}`);
+        }
+        const sourceStat = yield ioUtil.stat(source);
+        if (sourceStat.isDirectory()) {
+          if (!recursive) {
+            throw new Error(`Failed to copy. ${source} is a directory, but tried to copy without recursive flag.`);
+          } else {
+            yield cpDirRecursive(source, newDest, 0, force);
+          }
+        } else {
+          if (path.relative(source, newDest) === "") {
+            throw new Error(`'${newDest}' and '${source}' are the same file`);
+          }
+          yield copyFile(source, newDest, force);
+        }
+      });
+    }
+    exports2.cp = cp;
+    function mv(source, dest, options = {}) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (yield ioUtil.exists(dest)) {
+          let destExists = true;
+          if (yield ioUtil.isDirectory(dest)) {
+            dest = path.join(dest, path.basename(source));
+            destExists = yield ioUtil.exists(dest);
+          }
+          if (destExists) {
+            if (options.force == null || options.force) {
+              yield rmRF(dest);
+            } else {
+              throw new Error("Destination already exists");
+            }
+          }
+        }
+        yield mkdirP(path.dirname(dest));
+        yield ioUtil.rename(source, dest);
+      });
+    }
+    exports2.mv = mv;
+    function rmRF(inputPath) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (ioUtil.IS_WINDOWS) {
+          if (/[*"<>|]/.test(inputPath)) {
+            throw new Error('File path must not contain `*`, `"`, `<`, `>` or `|` on Windows');
+          }
+          try {
+            const cmdPath = ioUtil.getCmdPath();
+            if (yield ioUtil.isDirectory(inputPath, true)) {
+              yield exec2(`${cmdPath} /s /c "rd /s /q "%inputPath%""`, {
+                env: { inputPath }
+              });
+            } else {
+              yield exec2(`${cmdPath} /s /c "del /f /a "%inputPath%""`, {
+                env: { inputPath }
+              });
+            }
+          } catch (err) {
+            if (err.code !== "ENOENT")
+              throw err;
+          }
+          try {
+            yield ioUtil.unlink(inputPath);
+          } catch (err) {
+            if (err.code !== "ENOENT")
+              throw err;
+          }
+        } else {
+          let isDir = false;
+          try {
+            isDir = yield ioUtil.isDirectory(inputPath);
+          } catch (err) {
+            if (err.code !== "ENOENT")
+              throw err;
+            return;
+          }
+          if (isDir) {
+            yield execFile(`rm`, [`-rf`, `${inputPath}`]);
+          } else {
+            yield ioUtil.unlink(inputPath);
+          }
+        }
+      });
+    }
+    exports2.rmRF = rmRF;
+    function mkdirP(fsPath) {
+      return __awaiter(this, void 0, void 0, function* () {
+        assert_1.ok(fsPath, "a path argument must be provided");
+        yield ioUtil.mkdir(fsPath, { recursive: true });
+      });
+    }
+    exports2.mkdirP = mkdirP;
+    function which(tool, check) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (!tool) {
+          throw new Error("parameter 'tool' is required");
+        }
+        if (check) {
+          const result = yield which(tool, false);
+          if (!result) {
+            if (ioUtil.IS_WINDOWS) {
+              throw new Error(`Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`);
+            } else {
+              throw new Error(`Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`);
+            }
+          }
+          return result;
+        }
+        const matches = yield findInPath(tool);
+        if (matches && matches.length > 0) {
+          return matches[0];
+        }
+        return "";
+      });
+    }
+    exports2.which = which;
+    function findInPath(tool) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (!tool) {
+          throw new Error("parameter 'tool' is required");
+        }
+        const extensions = [];
+        if (ioUtil.IS_WINDOWS && process.env["PATHEXT"]) {
+          for (const extension of process.env["PATHEXT"].split(path.delimiter)) {
+            if (extension) {
+              extensions.push(extension);
+            }
+          }
+        }
+        if (ioUtil.isRooted(tool)) {
+          const filePath = yield ioUtil.tryGetExecutablePath(tool, extensions);
+          if (filePath) {
+            return [filePath];
+          }
+          return [];
+        }
+        if (tool.includes(path.sep)) {
+          return [];
+        }
+        const directories = [];
+        if (process.env.PATH) {
+          for (const p of process.env.PATH.split(path.delimiter)) {
+            if (p) {
+              directories.push(p);
+            }
+          }
+        }
+        const matches = [];
+        for (const directory of directories) {
+          const filePath = yield ioUtil.tryGetExecutablePath(path.join(directory, tool), extensions);
+          if (filePath) {
+            matches.push(filePath);
+          }
+        }
+        return matches;
+      });
+    }
+    exports2.findInPath = findInPath;
+    function readCopyOptions(options) {
+      const force = options.force == null ? true : options.force;
+      const recursive = Boolean(options.recursive);
+      const copySourceDirectory = options.copySourceDirectory == null ? true : Boolean(options.copySourceDirectory);
+      return { force, recursive, copySourceDirectory };
+    }
+    function cpDirRecursive(sourceDir, destDir, currentDepth, force) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if (currentDepth >= 255)
+          return;
+        currentDepth++;
+        yield mkdirP(destDir);
+        const files = yield ioUtil.readdir(sourceDir);
+        for (const fileName of files) {
+          const srcFile = `${sourceDir}/${fileName}`;
+          const destFile = `${destDir}/${fileName}`;
+          const srcFileStat = yield ioUtil.lstat(srcFile);
+          if (srcFileStat.isDirectory()) {
+            yield cpDirRecursive(srcFile, destFile, currentDepth, force);
+          } else {
+            yield copyFile(srcFile, destFile, force);
+          }
+        }
+        yield ioUtil.chmod(destDir, (yield ioUtil.stat(sourceDir)).mode);
+      });
+    }
+    function copyFile(srcFile, destFile, force) {
+      return __awaiter(this, void 0, void 0, function* () {
+        if ((yield ioUtil.lstat(srcFile)).isSymbolicLink()) {
+          try {
+            yield ioUtil.lstat(destFile);
+            yield ioUtil.unlink(destFile);
+          } catch (e) {
+            if (e.code === "EPERM") {
+              yield ioUtil.chmod(destFile, "0666");
+              yield ioUtil.unlink(destFile);
+            }
+          }
+          const symlinkFull = yield ioUtil.readlink(srcFile);
+          yield ioUtil.symlink(symlinkFull, destFile, ioUtil.IS_WINDOWS ? "junction" : null);
+        } else if (!(yield ioUtil.exists(destFile)) || force) {
+          yield ioUtil.copyFile(srcFile, destFile);
+        }
+      });
+    }
+  }
+});
+
+// node_modules/@actions/exec/lib/toolrunner.js
+var require_toolrunner = __commonJS({
+  "node_modules/@actions/exec/lib/toolrunner.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.argStringToArray = exports2.ToolRunner = void 0;
+    var os = __importStar(require("os"));
+    var events = __importStar(require("events"));
+    var child = __importStar(require("child_process"));
+    var path = __importStar(require("path"));
+    var io = __importStar(require_io());
+    var ioUtil = __importStar(require_io_util());
+    var timers_1 = require("timers");
+    var IS_WINDOWS = process.platform === "win32";
+    var ToolRunner = class extends events.EventEmitter {
+      constructor(toolPath, args, options) {
+        super();
+        if (!toolPath) {
+          throw new Error("Parameter 'toolPath' cannot be null or empty.");
+        }
+        this.toolPath = toolPath;
+        this.args = args || [];
+        this.options = options || {};
+      }
+      _debug(message) {
+        if (this.options.listeners && this.options.listeners.debug) {
+          this.options.listeners.debug(message);
+        }
+      }
+      _getCommandString(options, noPrefix) {
+        const toolPath = this._getSpawnFileName();
+        const args = this._getSpawnArgs(options);
+        let cmd = noPrefix ? "" : "[command]";
+        if (IS_WINDOWS) {
+          if (this._isCmdFile()) {
+            cmd += toolPath;
+            for (const a2 of args) {
+              cmd += ` ${a2}`;
+            }
+          } else if (options.windowsVerbatimArguments) {
+            cmd += `"${toolPath}"`;
+            for (const a2 of args) {
+              cmd += ` ${a2}`;
+            }
+          } else {
+            cmd += this._windowsQuoteCmdArg(toolPath);
+            for (const a2 of args) {
+              cmd += ` ${this._windowsQuoteCmdArg(a2)}`;
+            }
+          }
+        } else {
+          cmd += toolPath;
+          for (const a2 of args) {
+            cmd += ` ${a2}`;
+          }
+        }
+        return cmd;
+      }
+      _processLineBuffer(data, strBuffer, onLine) {
+        try {
+          let s = strBuffer + data.toString();
+          let n = s.indexOf(os.EOL);
+          while (n > -1) {
+            const line = s.substring(0, n);
+            onLine(line);
+            s = s.substring(n + os.EOL.length);
+            n = s.indexOf(os.EOL);
+          }
+          return s;
+        } catch (err) {
+          this._debug(`error processing line. Failed with error ${err}`);
+          return "";
+        }
+      }
+      _getSpawnFileName() {
+        if (IS_WINDOWS) {
+          if (this._isCmdFile()) {
+            return process.env["COMSPEC"] || "cmd.exe";
+          }
+        }
+        return this.toolPath;
+      }
+      _getSpawnArgs(options) {
+        if (IS_WINDOWS) {
+          if (this._isCmdFile()) {
+            let argline = `/D /S /C "${this._windowsQuoteCmdArg(this.toolPath)}`;
+            for (const a2 of this.args) {
+              argline += " ";
+              argline += options.windowsVerbatimArguments ? a2 : this._windowsQuoteCmdArg(a2);
+            }
+            argline += '"';
+            return [argline];
+          }
+        }
+        return this.args;
+      }
+      _endsWith(str, end) {
+        return str.endsWith(end);
+      }
+      _isCmdFile() {
+        const upperToolPath = this.toolPath.toUpperCase();
+        return this._endsWith(upperToolPath, ".CMD") || this._endsWith(upperToolPath, ".BAT");
+      }
+      _windowsQuoteCmdArg(arg) {
+        if (!this._isCmdFile()) {
+          return this._uvQuoteCmdArg(arg);
+        }
+        if (!arg) {
+          return '""';
+        }
+        const cmdSpecialChars = [
+          " ",
+          "	",
+          "&",
+          "(",
+          ")",
+          "[",
+          "]",
+          "{",
+          "}",
+          "^",
+          "=",
+          ";",
+          "!",
+          "'",
+          "+",
+          ",",
+          "`",
+          "~",
+          "|",
+          "<",
+          ">",
+          '"'
+        ];
+        let needsQuotes = false;
+        for (const char of arg) {
+          if (cmdSpecialChars.some((x2) => x2 === char)) {
+            needsQuotes = true;
+            break;
+          }
+        }
+        if (!needsQuotes) {
+          return arg;
+        }
+        let reverse = '"';
+        let quoteHit = true;
+        for (let i = arg.length; i > 0; i--) {
+          reverse += arg[i - 1];
+          if (quoteHit && arg[i - 1] === "\\") {
+            reverse += "\\";
+          } else if (arg[i - 1] === '"') {
+            quoteHit = true;
+            reverse += '"';
+          } else {
+            quoteHit = false;
+          }
+        }
+        reverse += '"';
+        return reverse.split("").reverse().join("");
+      }
+      _uvQuoteCmdArg(arg) {
+        if (!arg) {
+          return '""';
+        }
+        if (!arg.includes(" ") && !arg.includes("	") && !arg.includes('"')) {
+          return arg;
+        }
+        if (!arg.includes('"') && !arg.includes("\\")) {
+          return `"${arg}"`;
+        }
+        let reverse = '"';
+        let quoteHit = true;
+        for (let i = arg.length; i > 0; i--) {
+          reverse += arg[i - 1];
+          if (quoteHit && arg[i - 1] === "\\") {
+            reverse += "\\";
+          } else if (arg[i - 1] === '"') {
+            quoteHit = true;
+            reverse += "\\";
+          } else {
+            quoteHit = false;
+          }
+        }
+        reverse += '"';
+        return reverse.split("").reverse().join("");
+      }
+      _cloneExecOptions(options) {
+        options = options || {};
+        const result = {
+          cwd: options.cwd || process.cwd(),
+          env: options.env || process.env,
+          silent: options.silent || false,
+          windowsVerbatimArguments: options.windowsVerbatimArguments || false,
+          failOnStdErr: options.failOnStdErr || false,
+          ignoreReturnCode: options.ignoreReturnCode || false,
+          delay: options.delay || 1e4
+        };
+        result.outStream = options.outStream || process.stdout;
+        result.errStream = options.errStream || process.stderr;
+        return result;
+      }
+      _getSpawnOptions(options, toolPath) {
+        options = options || {};
+        const result = {};
+        result.cwd = options.cwd;
+        result.env = options.env;
+        result["windowsVerbatimArguments"] = options.windowsVerbatimArguments || this._isCmdFile();
+        if (options.windowsVerbatimArguments) {
+          result.argv0 = `"${toolPath}"`;
+        }
+        return result;
+      }
+      exec() {
+        return __awaiter(this, void 0, void 0, function* () {
+          if (!ioUtil.isRooted(this.toolPath) && (this.toolPath.includes("/") || IS_WINDOWS && this.toolPath.includes("\\"))) {
+            this.toolPath = path.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
+          }
+          this.toolPath = yield io.which(this.toolPath, true);
+          return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            this._debug(`exec tool: ${this.toolPath}`);
+            this._debug("arguments:");
+            for (const arg of this.args) {
+              this._debug(`   ${arg}`);
+            }
+            const optionsNonNull = this._cloneExecOptions(this.options);
+            if (!optionsNonNull.silent && optionsNonNull.outStream) {
+              optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + os.EOL);
+            }
+            const state = new ExecState(optionsNonNull, this.toolPath);
+            state.on("debug", (message) => {
+              this._debug(message);
+            });
+            if (this.options.cwd && !(yield ioUtil.exists(this.options.cwd))) {
+              return reject(new Error(`The cwd: ${this.options.cwd} does not exist!`));
+            }
+            const fileName = this._getSpawnFileName();
+            const cp = child.spawn(fileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(this.options, fileName));
+            let stdbuffer = "";
+            if (cp.stdout) {
+              cp.stdout.on("data", (data) => {
+                if (this.options.listeners && this.options.listeners.stdout) {
+                  this.options.listeners.stdout(data);
+                }
+                if (!optionsNonNull.silent && optionsNonNull.outStream) {
+                  optionsNonNull.outStream.write(data);
+                }
+                stdbuffer = this._processLineBuffer(data, stdbuffer, (line) => {
+                  if (this.options.listeners && this.options.listeners.stdline) {
+                    this.options.listeners.stdline(line);
+                  }
+                });
+              });
+            }
+            let errbuffer = "";
+            if (cp.stderr) {
+              cp.stderr.on("data", (data) => {
+                state.processStderr = true;
+                if (this.options.listeners && this.options.listeners.stderr) {
+                  this.options.listeners.stderr(data);
+                }
+                if (!optionsNonNull.silent && optionsNonNull.errStream && optionsNonNull.outStream) {
+                  const s = optionsNonNull.failOnStdErr ? optionsNonNull.errStream : optionsNonNull.outStream;
+                  s.write(data);
+                }
+                errbuffer = this._processLineBuffer(data, errbuffer, (line) => {
+                  if (this.options.listeners && this.options.listeners.errline) {
+                    this.options.listeners.errline(line);
+                  }
+                });
+              });
+            }
+            cp.on("error", (err) => {
+              state.processError = err.message;
+              state.processExited = true;
+              state.processClosed = true;
+              state.CheckComplete();
+            });
+            cp.on("exit", (code) => {
+              state.processExitCode = code;
+              state.processExited = true;
+              this._debug(`Exit code ${code} received from tool '${this.toolPath}'`);
+              state.CheckComplete();
+            });
+            cp.on("close", (code) => {
+              state.processExitCode = code;
+              state.processExited = true;
+              state.processClosed = true;
+              this._debug(`STDIO streams have closed for tool '${this.toolPath}'`);
+              state.CheckComplete();
+            });
+            state.on("done", (error, exitCode) => {
+              if (stdbuffer.length > 0) {
+                this.emit("stdline", stdbuffer);
+              }
+              if (errbuffer.length > 0) {
+                this.emit("errline", errbuffer);
+              }
+              cp.removeAllListeners();
+              if (error) {
+                reject(error);
+              } else {
+                resolve(exitCode);
+              }
+            });
+            if (this.options.input) {
+              if (!cp.stdin) {
+                throw new Error("child process missing stdin");
+              }
+              cp.stdin.end(this.options.input);
+            }
+          }));
+        });
+      }
+    };
+    exports2.ToolRunner = ToolRunner;
+    function argStringToArray(argString) {
+      const args = [];
+      let inQuotes = false;
+      let escaped = false;
+      let arg = "";
+      function append(c2) {
+        if (escaped && c2 !== '"') {
+          arg += "\\";
+        }
+        arg += c2;
+        escaped = false;
+      }
+      for (let i = 0; i < argString.length; i++) {
+        const c2 = argString.charAt(i);
+        if (c2 === '"') {
+          if (!escaped) {
+            inQuotes = !inQuotes;
+          } else {
+            append(c2);
+          }
+          continue;
+        }
+        if (c2 === "\\" && escaped) {
+          append(c2);
+          continue;
+        }
+        if (c2 === "\\" && inQuotes) {
+          escaped = true;
+          continue;
+        }
+        if (c2 === " " && !inQuotes) {
+          if (arg.length > 0) {
+            args.push(arg);
+            arg = "";
+          }
+          continue;
+        }
+        append(c2);
+      }
+      if (arg.length > 0) {
+        args.push(arg.trim());
+      }
+      return args;
+    }
+    exports2.argStringToArray = argStringToArray;
+    var ExecState = class extends events.EventEmitter {
+      constructor(options, toolPath) {
+        super();
+        this.processClosed = false;
+        this.processError = "";
+        this.processExitCode = 0;
+        this.processExited = false;
+        this.processStderr = false;
+        this.delay = 1e4;
+        this.done = false;
+        this.timeout = null;
+        if (!toolPath) {
+          throw new Error("toolPath must not be empty");
+        }
+        this.options = options;
+        this.toolPath = toolPath;
+        if (options.delay) {
+          this.delay = options.delay;
+        }
+      }
+      CheckComplete() {
+        if (this.done) {
+          return;
+        }
+        if (this.processClosed) {
+          this._setResult();
+        } else if (this.processExited) {
+          this.timeout = timers_1.setTimeout(ExecState.HandleTimeout, this.delay, this);
+        }
+      }
+      _debug(message) {
+        this.emit("debug", message);
+      }
+      _setResult() {
+        let error;
+        if (this.processExited) {
+          if (this.processError) {
+            error = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
+          } else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
+            error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
+          } else if (this.processStderr && this.options.failOnStdErr) {
+            error = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
+          }
+        }
+        if (this.timeout) {
+          clearTimeout(this.timeout);
+          this.timeout = null;
+        }
+        this.done = true;
+        this.emit("done", error, this.processExitCode);
+      }
+      static HandleTimeout(state) {
+        if (state.done) {
+          return;
+        }
+        if (!state.processClosed && state.processExited) {
+          const message = `The STDIO streams did not close within ${state.delay / 1e3} seconds of the exit event from process '${state.toolPath}'. This may indicate a child process inherited the STDIO streams and has not yet exited.`;
+          state._debug(message);
+        }
+        state._setResult();
+      }
+    };
+  }
+});
+
+// node_modules/@actions/exec/lib/exec.js
+var require_exec = __commonJS({
+  "node_modules/@actions/exec/lib/exec.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.getExecOutput = exports2.exec = void 0;
+    var string_decoder_1 = require("string_decoder");
+    var tr = __importStar(require_toolrunner());
+    function exec2(commandLine, args, options) {
+      return __awaiter(this, void 0, void 0, function* () {
+        const commandArgs = tr.argStringToArray(commandLine);
+        if (commandArgs.length === 0) {
+          throw new Error(`Parameter 'commandLine' cannot be null or empty.`);
+        }
+        const toolPath = commandArgs[0];
+        args = commandArgs.slice(1).concat(args || []);
+        const runner = new tr.ToolRunner(toolPath, args, options);
+        return runner.exec();
+      });
+    }
+    exports2.exec = exec2;
+    function getExecOutput(commandLine, args, options) {
+      var _a, _b;
+      return __awaiter(this, void 0, void 0, function* () {
+        let stdout2 = "";
+        let stderr2 = "";
+        const stdoutDecoder = new string_decoder_1.StringDecoder("utf8");
+        const stderrDecoder = new string_decoder_1.StringDecoder("utf8");
+        const originalStdoutListener = (_a = options === null || options === void 0 ? void 0 : options.listeners) === null || _a === void 0 ? void 0 : _a.stdout;
+        const originalStdErrListener = (_b = options === null || options === void 0 ? void 0 : options.listeners) === null || _b === void 0 ? void 0 : _b.stderr;
+        const stdErrListener = (data) => {
+          stderr2 += stderrDecoder.write(data);
+          if (originalStdErrListener) {
+            originalStdErrListener(data);
+          }
+        };
+        const stdOutListener = (data) => {
+          stdout2 += stdoutDecoder.write(data);
+          if (originalStdoutListener) {
+            originalStdoutListener(data);
+          }
+        };
+        const listeners = Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.listeners), { stdout: stdOutListener, stderr: stdErrListener });
+        const exitCode = yield exec2(commandLine, args, Object.assign(Object.assign({}, options), { listeners }));
+        stdout2 += stdoutDecoder.end();
+        stderr2 += stderrDecoder.end();
+        return {
+          exitCode,
+          stdout: stdout2,
+          stderr: stderr2
+        };
+      });
+    }
+    exports2.getExecOutput = getExecOutput;
+  }
+});
+
+// node_modules/@actions/core/lib/utils.js
+var require_utils = __commonJS({
+  "node_modules/@actions/core/lib/utils.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.toCommandValue = void 0;
+    function toCommandValue(input) {
+      if (input === null || input === void 0) {
+        return "";
+      } else if (typeof input === "string" || input instanceof String) {
+        return input;
+      }
+      return JSON.stringify(input);
+    }
+    exports2.toCommandValue = toCommandValue;
+  }
+});
+
+// node_modules/@actions/core/lib/command.js
+var require_command = __commonJS({
+  "node_modules/@actions/core/lib/command.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.issue = exports2.issueCommand = void 0;
+    var os = __importStar(require("os"));
+    var utils_1 = require_utils();
+    function issueCommand(command, properties, message) {
+      const cmd = new Command(command, properties, message);
+      process.stdout.write(cmd.toString() + os.EOL);
+    }
+    exports2.issueCommand = issueCommand;
+    function issue(name, message = "") {
+      issueCommand(name, {}, message);
+    }
+    exports2.issue = issue;
+    var CMD_STRING = "::";
+    var Command = class {
+      constructor(command, properties, message) {
+        if (!command) {
+          command = "missing.command";
+        }
+        this.command = command;
+        this.properties = properties;
+        this.message = message;
+      }
+      toString() {
+        let cmdStr = CMD_STRING + this.command;
+        if (this.properties && Object.keys(this.properties).length > 0) {
+          cmdStr += " ";
+          let first = true;
+          for (const key in this.properties) {
+            if (this.properties.hasOwnProperty(key)) {
+              const val = this.properties[key];
+              if (val) {
+                if (first) {
+                  first = false;
+                } else {
+                  cmdStr += ",";
+                }
+                cmdStr += `${key}=${escapeProperty(val)}`;
+              }
+            }
+          }
+        }
+        cmdStr += `${CMD_STRING}${escapeData(this.message)}`;
+        return cmdStr;
+      }
+    };
+    function escapeData(s) {
+      return utils_1.toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+    }
+    function escapeProperty(s) {
+      return utils_1.toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
+    }
+  }
+});
+
+// node_modules/@actions/core/lib/file-command.js
+var require_file_command = __commonJS({
+  "node_modules/@actions/core/lib/file-command.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.issueCommand = void 0;
+    var fs3 = __importStar(require("fs"));
+    var os = __importStar(require("os"));
+    var utils_1 = require_utils();
+    function issueCommand(command, message) {
+      const filePath = process.env[`GITHUB_${command}`];
+      if (!filePath) {
+        throw new Error(`Unable to find environment variable for file command ${command}`);
+      }
+      if (!fs3.existsSync(filePath)) {
+        throw new Error(`Missing file at path: ${filePath}`);
+      }
+      fs3.appendFileSync(filePath, `${utils_1.toCommandValue(message)}${os.EOL}`, {
+        encoding: "utf8"
+      });
+    }
+    exports2.issueCommand = issueCommand;
+  }
+});
+
+// node_modules/@actions/core/lib/core.js
+var require_core = __commonJS({
+  "node_modules/@actions/core/lib/core.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.getState = exports2.saveState = exports2.group = exports2.endGroup = exports2.startGroup = exports2.info = exports2.warning = exports2.error = exports2.debug = exports2.isDebug = exports2.setFailed = exports2.setCommandEcho = exports2.setOutput = exports2.getBooleanInput = exports2.getMultilineInput = exports2.getInput = exports2.addPath = exports2.setSecret = exports2.exportVariable = exports2.ExitCode = void 0;
+    var command_1 = require_command();
+    var file_command_1 = require_file_command();
+    var utils_1 = require_utils();
+    var os = __importStar(require("os"));
+    var path = __importStar(require("path"));
+    var ExitCode;
+    (function(ExitCode2) {
+      ExitCode2[ExitCode2["Success"] = 0] = "Success";
+      ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
+    })(ExitCode = exports2.ExitCode || (exports2.ExitCode = {}));
+    function exportVariable(name, val) {
+      const convertedVal = utils_1.toCommandValue(val);
+      process.env[name] = convertedVal;
+      const filePath = process.env["GITHUB_ENV"] || "";
+      if (filePath) {
+        const delimiter = "_GitHubActionsFileCommandDelimeter_";
+        const commandValue = `${name}<<${delimiter}${os.EOL}${convertedVal}${os.EOL}${delimiter}`;
+        file_command_1.issueCommand("ENV", commandValue);
+      } else {
+        command_1.issueCommand("set-env", { name }, convertedVal);
+      }
+    }
+    exports2.exportVariable = exportVariable;
+    function setSecret(secret) {
+      command_1.issueCommand("add-mask", {}, secret);
+    }
+    exports2.setSecret = setSecret;
+    function addPath(inputPath) {
+      const filePath = process.env["GITHUB_PATH"] || "";
+      if (filePath) {
+        file_command_1.issueCommand("PATH", inputPath);
+      } else {
+        command_1.issueCommand("add-path", {}, inputPath);
+      }
+      process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
+    }
+    exports2.addPath = addPath;
+    function getInput2(name, options) {
+      const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
+      if (options && options.required && !val) {
+        throw new Error(`Input required and not supplied: ${name}`);
+      }
+      if (options && options.trimWhitespace === false) {
+        return val;
+      }
+      return val.trim();
+    }
+    exports2.getInput = getInput2;
+    function getMultilineInput(name, options) {
+      const inputs = getInput2(name, options).split("\n").filter((x2) => x2 !== "");
+      return inputs;
+    }
+    exports2.getMultilineInput = getMultilineInput;
+    function getBooleanInput(name, options) {
+      const trueValue = ["true", "True", "TRUE"];
+      const falseValue = ["false", "False", "FALSE"];
+      const val = getInput2(name, options);
+      if (trueValue.includes(val))
+        return true;
+      if (falseValue.includes(val))
+        return false;
+      throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
+Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
+    }
+    exports2.getBooleanInput = getBooleanInput;
+    function setOutput(name, value) {
+      process.stdout.write(os.EOL);
+      command_1.issueCommand("set-output", { name }, value);
+    }
+    exports2.setOutput = setOutput;
+    function setCommandEcho(enabled) {
+      command_1.issue("echo", enabled ? "on" : "off");
+    }
+    exports2.setCommandEcho = setCommandEcho;
+    function setFailed(message) {
+      process.exitCode = ExitCode.Failure;
+      error(message);
+    }
+    exports2.setFailed = setFailed;
+    function isDebug() {
+      return process.env["RUNNER_DEBUG"] === "1";
+    }
+    exports2.isDebug = isDebug;
+    function debug(message) {
+      command_1.issueCommand("debug", {}, message);
+    }
+    exports2.debug = debug;
+    function error(message) {
+      command_1.issue("error", message instanceof Error ? message.toString() : message);
+    }
+    exports2.error = error;
+    function warning(message) {
+      command_1.issue("warning", message instanceof Error ? message.toString() : message);
+    }
+    exports2.warning = warning;
+    function info2(message) {
+      process.stdout.write(message + os.EOL);
+    }
+    exports2.info = info2;
+    function startGroup2(name) {
+      command_1.issue("group", name);
+    }
+    exports2.startGroup = startGroup2;
+    function endGroup2() {
+      command_1.issue("endgroup");
+    }
+    exports2.endGroup = endGroup2;
+    function group(name, fn) {
+      return __awaiter(this, void 0, void 0, function* () {
+        startGroup2(name);
+        let result;
+        try {
+          result = yield fn();
+        } finally {
+          endGroup2();
+        }
+        return result;
+      });
+    }
+    exports2.group = group;
+    function saveState(name, value) {
+      command_1.issueCommand("save-state", { name }, value);
+    }
+    exports2.saveState = saveState;
+    function getState(name) {
+      return process.env[`STATE_${name}`] || "";
+    }
+    exports2.getState = getState;
+  }
+});
+
 // node_modules/object-assign/index.js
 var require_object_assign = __commonJS({
   "node_modules/object-assign/index.js"(exports2, module2) {
@@ -584,10 +1984,10 @@ var require_react_development = __commonJS({
             isMounted: ["isMounted", "Instead, make sure to clean up subscriptions and pending requests in componentWillUnmount to prevent memory leaks."],
             replaceState: ["replaceState", "Refactor your code to use setState instead (see https://github.com/facebook/react/issues/3236)."]
           };
-          var defineDeprecationWarning = function(methodName, info) {
+          var defineDeprecationWarning = function(methodName, info2) {
             Object.defineProperty(Component.prototype, methodName, {
               get: function() {
-                warn("%s(...) is deprecated in plain JavaScript React classes. %s", info[0], info[1]);
+                warn("%s(...) is deprecated in plain JavaScript React classes. %s", info2[0], info2[1]);
                 return void 0;
               }
             });
@@ -1709,14 +3109,14 @@ var require_react_development = __commonJS({
         }
         var ownerHasKeyUseWarning = {};
         function getCurrentComponentErrorInfo(parentType) {
-          var info = getDeclarationErrorAddendum();
-          if (!info) {
+          var info2 = getDeclarationErrorAddendum();
+          if (!info2) {
             var parentName = typeof parentType === "string" ? parentType : parentType.displayName || parentType.name;
             if (parentName) {
-              info = "\n\nCheck the top-level render call using <" + parentName + ">.";
+              info2 = "\n\nCheck the top-level render call using <" + parentName + ">.";
             }
           }
-          return info;
+          return info2;
         }
         function validateExplicitKey(element, parentType) {
           if (!element._store || element._store.validated || element.key != null) {
@@ -1817,15 +3217,15 @@ var require_react_development = __commonJS({
         function createElementWithValidation(type2, props, children2) {
           var validType = isValidElementType(type2);
           if (!validType) {
-            var info = "";
+            var info2 = "";
             if (type2 === void 0 || typeof type2 === "object" && type2 !== null && Object.keys(type2).length === 0) {
-              info += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
+              info2 += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
             }
             var sourceInfo = getSourceInfoErrorAddendumForProps(props);
             if (sourceInfo) {
-              info += sourceInfo;
+              info2 += sourceInfo;
             } else {
-              info += getDeclarationErrorAddendum();
+              info2 += getDeclarationErrorAddendum();
             }
             var typeString;
             if (type2 === null) {
@@ -1834,12 +3234,12 @@ var require_react_development = __commonJS({
               typeString = "array";
             } else if (type2 !== void 0 && type2.$$typeof === REACT_ELEMENT_TYPE) {
               typeString = "<" + (getComponentName(type2.type) || "Unknown") + " />";
-              info = " Did you accidentally export a JSX literal instead of a component?";
+              info2 = " Did you accidentally export a JSX literal instead of a component?";
             } else {
               typeString = typeof type2;
             }
             {
-              error("React.createElement: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s", typeString, info);
+              error("React.createElement: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s", typeString, info2);
             }
           }
           var element = createElement.apply(this, arguments);
@@ -5990,20 +7390,20 @@ var require_react_dom_server_node_development = __commonJS({
                   }
                 }
               }
-              var info = "";
+              var info2 = "";
               {
                 var owner = nextElement._owner;
                 if (elementType === void 0 || typeof elementType === "object" && elementType !== null && Object.keys(elementType).length === 0) {
-                  info += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
+                  info2 += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.";
                 }
                 var ownerName = owner ? getComponentName(owner) : null;
                 if (ownerName) {
-                  info += "\n\nCheck the render method of `" + ownerName + "`.";
+                  info2 += "\n\nCheck the render method of `" + ownerName + "`.";
                 }
               }
               {
                 {
-                  throw Error("Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: " + (elementType == null ? elementType : typeof elementType) + "." + info);
+                  throw Error("Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: " + (elementType == null ? elementType : typeof elementType) + "." + info2);
                 }
               }
             }
@@ -8745,6 +10145,8 @@ var require_uniqueId = __commonJS({
 });
 
 // src/index.jsx
+var import_exec = __toModule(require_exec());
+var core = __toModule(require_core());
 var import_react3 = __toModule(require_react());
 var import_server = __toModule(require_server());
 var import_fs2 = __toModule(require("fs"));
@@ -8793,8 +10195,8 @@ var processDir = async (rootPath) => {
           if (fullPathFoldersToIgnore.includes(rootPath + "/" + file)) {
             continue;
           }
-          const info = import_fs.default.statSync(path + "/" + file);
-          const stats2 = await addItemToTree(path + "/" + file, info.isDirectory());
+          const info2 = import_fs.default.statSync(path + "/" + file);
+          const stats2 = await addItemToTree(path + "/" + file, info2.isDirectory());
           if (stats2)
             children2.push(stats2);
         }
@@ -13206,21 +14608,22 @@ var Tree = ({ data, filesChanged = [] }) => {
   const cachedPositions = (0, import_react2.useRef)({});
   const cachedOrders = (0, import_react2.useRef)({});
   const getColor = (d) => {
+    var _a, _b, _c, _d;
     if (colorTheme === "file") {
       const isParent = d.children;
       if (isParent) {
         const extensions = (0, import_countBy.default)(d.children, (c2) => c2.extension);
-        const mainExtension = (0, import_maxBy.default)((0, import_entries.default)(extensions), ([k, v]) => v)?.[0];
+        const mainExtension = (_a = (0, import_maxBy.default)((0, import_entries.default)(extensions), ([k, v]) => v)) == null ? void 0 : _a[0];
         return fileColors[mainExtension] || "#b4b4b6";
       }
       return fileColors[d.extension] || "#b4b4b6";
     } else if (colorTheme === "changes") {
       const scale = linear2().domain([0, 50]).range(["#f4f4f4", "#0fb9b1"]).clamp(true);
-      const numberOfChanges = d?.commits?.length;
+      const numberOfChanges = (_b = d == null ? void 0 : d.commits) == null ? void 0 : _b.length;
       return scale(numberOfChanges);
     } else if (colorTheme === "last-change") {
       const scale = linear2().domain([day_default.offset(new Date(), -100), new Date()]).range(["#f4f4f4", "#0fb9b1"]).clamp(true);
-      const lastChangeDate = new Date(d?.commits?.[0]?.date);
+      const lastChangeDate = new Date((_d = (_c = d == null ? void 0 : d.commits) == null ? void 0 : _c[0]) == null ? void 0 : _d.date);
       return scale(lastChangeDate) || "#fff";
     }
   };
@@ -13233,7 +14636,10 @@ var Tree = ({ data, filesChanged = [] }) => {
     let packedTree = pack_default().size([width, height * 1.3]).padding((d) => {
       if (d.depth <= 0)
         return 6;
-      const hasChildWithNoChildren = d.children.filter((d2) => !d2.children?.length).length > 1;
+      const hasChildWithNoChildren = d.children.filter((d2) => {
+        var _a;
+        return !((_a = d2.children) == null ? void 0 : _a.length);
+      }).length > 1;
       if (hasChildWithNoChildren)
         return 6;
       return 30;
@@ -13256,58 +14662,61 @@ var Tree = ({ data, filesChanged = [] }) => {
   }, [data]);
   const selectedNode = selectedNodeId && packedData.find((d) => d.data.path === selectedNodeId);
   const fileTypes = (0, import_uniqBy.default)(packedData.map((d) => fileColors[d.data.extension] && d.data.extension)).sort().filter(Boolean);
-  const imports = (0, import_flatten.default)(packedData.map(({ x: x2, y: y2, r, depth, children: children2, data: data2 }) => data2?.imports?.map((im) => {
-    if (depth <= 0)
-      return null;
-    if (depth > maxDepth)
-      return null;
-    const isParent = !!children2 && depth !== maxDepth;
-    if (isParent)
-      return;
-    if (data2.path === looseFilesId)
-      return null;
-    if (!im.moduleName)
-      return;
-    const isExternal = im.moduleName.startsWith("lib/");
-    const originNode = isExternal ? null : packedData.find((d2) => (d2.data.pathWithoutExtension === im.moduleName || d2.data.path === im.moduleName) && !d2?.children);
-    if (!originNode)
-      return;
-    let start2 = [originNode.x - x2, originNode.y - y2];
-    const end = Math.abs(start2[0]) < 5 ? [
-      0,
-      Math.min(Math.abs(start2[1]), r) * (start2[1] > 0 ? 1 : -1)
-    ] : [
-      0,
-      Math.min(Math.abs(start2[1]), r) * (start2[1] > 0 ? 1 : -1)
-    ];
-    if (![data2.path, originNode.data.path].find((d2) => d2 === selectedNodeId || d2.includes(selectedNodeId))) {
-      return;
-    }
-    if (!start2[0]) {
-      start2[1] += 100;
-    } else {
-      start2[0] += Math.min(Math.abs(start2[0]), originNode.r) * (start2[0] > 0 ? -1 : 1);
-    }
-    const d = [
-      "M",
-      start2[0],
-      start2[1],
-      "Q",
-      end[0],
-      start2[1],
-      end[0],
-      end[1]
-    ].join(" ");
-    return {
-      x: x2,
-      y: y2,
-      r,
-      d,
-      path: data2.path,
-      toPath: originNode.data.path,
-      color: data2.color
-    };
-  }).filter(Boolean))).filter(Boolean);
+  const imports = (0, import_flatten.default)(packedData.map(({ x: x2, y: y2, r, depth, children: children2, data: data2 }) => {
+    var _a;
+    return (_a = data2 == null ? void 0 : data2.imports) == null ? void 0 : _a.map((im) => {
+      if (depth <= 0)
+        return null;
+      if (depth > maxDepth)
+        return null;
+      const isParent = !!children2 && depth !== maxDepth;
+      if (isParent)
+        return;
+      if (data2.path === looseFilesId)
+        return null;
+      if (!im.moduleName)
+        return;
+      const isExternal = im.moduleName.startsWith("lib/");
+      const originNode = isExternal ? null : packedData.find((d2) => (d2.data.pathWithoutExtension === im.moduleName || d2.data.path === im.moduleName) && !(d2 == null ? void 0 : d2.children));
+      if (!originNode)
+        return;
+      let start2 = [originNode.x - x2, originNode.y - y2];
+      const end = Math.abs(start2[0]) < 5 ? [
+        0,
+        Math.min(Math.abs(start2[1]), r) * (start2[1] > 0 ? 1 : -1)
+      ] : [
+        0,
+        Math.min(Math.abs(start2[1]), r) * (start2[1] > 0 ? 1 : -1)
+      ];
+      if (![data2.path, originNode.data.path].find((d2) => d2 === selectedNodeId || d2.includes(selectedNodeId))) {
+        return;
+      }
+      if (!start2[0]) {
+        start2[1] += 100;
+      } else {
+        start2[0] += Math.min(Math.abs(start2[0]), originNode.r) * (start2[0] > 0 ? -1 : 1);
+      }
+      const d = [
+        "M",
+        start2[0],
+        start2[1],
+        "Q",
+        end[0],
+        start2[1],
+        end[0],
+        end[1]
+      ].join(" ");
+      return {
+        x: x2,
+        y: y2,
+        r,
+        d,
+        path: data2.path,
+        toPath: originNode.data.path,
+        color: data2.color
+      };
+    }).filter(Boolean);
+  })).filter(Boolean);
   return /* @__PURE__ */ import_react2.default.createElement("svg", {
     width,
     height,
@@ -13506,24 +14915,31 @@ var Legend = ({ fileTypes = [] }) => {
   }, "each dot sized by file size"));
 };
 var processChild = (child, getColor, cachedOrders, i = 0) => {
+  var _a;
   if (!child)
     return;
   const isRoot = !child.path;
   let name = child.name;
   let path = child.path;
-  let children2 = child?.children?.map((c2, i2) => processChild(c2, getColor, cachedOrders, i2));
-  if (children2?.length === 1) {
+  let children2 = (_a = child == null ? void 0 : child.children) == null ? void 0 : _a.map((c2, i2) => processChild(c2, getColor, cachedOrders, i2));
+  if ((children2 == null ? void 0 : children2.length) === 1) {
     name = `${name}/${children2[0].name}`;
     path = children2[0].path;
     children2 = children2[0].children;
   }
-  const pathWithoutExtension = path?.split(".").slice(0, -1).join(".");
-  const extension = name?.split(".").slice(-1)[0];
+  const pathWithoutExtension = path == null ? void 0 : path.split(".").slice(0, -1).join(".");
+  const extension = name == null ? void 0 : name.split(".").slice(-1)[0];
   const hasExtension = !!fileColors[extension];
   if (isRoot && children2) {
-    const looseChildren = children2?.filter((d) => !d.children?.length);
+    const looseChildren = children2 == null ? void 0 : children2.filter((d) => {
+      var _a2;
+      return !((_a2 = d.children) == null ? void 0 : _a2.length);
+    });
     children2 = [
-      ...children2?.filter((d) => d.children?.length),
+      ...children2 == null ? void 0 : children2.filter((d) => {
+        var _a2;
+        return (_a2 = d.children) == null ? void 0 : _a2.length;
+      }),
       {
         name: looseFilesId,
         path: looseFilesId,
@@ -13551,16 +14967,29 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
   if (!siblings)
     return;
   const items = [...siblings.map((d) => {
+    var _a, _b;
     return {
       ...d,
-      x: cachedPositions[d.data.path]?.[0] || d.x,
-      y: cachedPositions[d.data.path]?.[1] || d.y,
+      x: ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) || d.x,
+      y: ((_b = cachedPositions[d.data.path]) == null ? void 0 : _b[1]) || d.y,
       originalX: d.x,
       originalY: d.y
     };
   })];
   const paddingScale = linear2().domain([10, 1]).range([3, 30]).clamp(true);
-  let simulation = simulation_default(items).force("centerX", x_default2(width / 2).strength(items[0].depth <= 2 ? 0.01 : 0)).force("centerY", y_default2(height / 2).strength(items[0].depth <= 2 ? 0.05 : 0)).force("centerX2", x_default2(parentPosition?.[0]).strength(parentPosition ? 0.5 : 0)).force("centerY2", y_default2(parentPosition?.[1]).strength(parentPosition ? 0.5 : 0)).force("x", x_default2((d) => cachedPositions[d.data.path]?.[0] || width / 2).strength((d) => cachedPositions[d.data.path]?.[1] ? 0.5 : 0.1)).force("y", y_default2((d) => cachedPositions[d.data.path]?.[1] || height / 2).strength((d) => cachedPositions[d.data.path]?.[0] ? 0.5 : 0.6)).force("collide", collide_default((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 3).iterations(13).strength(1)).stop();
+  let simulation = simulation_default(items).force("centerX", x_default2(width / 2).strength(items[0].depth <= 2 ? 0.01 : 0)).force("centerY", y_default2(height / 2).strength(items[0].depth <= 2 ? 0.05 : 0)).force("centerX2", x_default2(parentPosition == null ? void 0 : parentPosition[0]).strength(parentPosition ? 0.5 : 0)).force("centerY2", y_default2(parentPosition == null ? void 0 : parentPosition[1]).strength(parentPosition ? 0.5 : 0)).force("x", x_default2((d) => {
+    var _a;
+    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) || width / 2;
+  }).strength((d) => {
+    var _a;
+    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[1]) ? 0.5 : 0.1;
+  })).force("y", y_default2((d) => {
+    var _a;
+    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[1]) || height / 2;
+  }).strength((d) => {
+    var _a;
+    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) ? 0.5 : 0.6;
+  })).force("collide", collide_default((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 3).iterations(13).strength(1)).stop();
   for (let i = 0; i < 130; i++) {
     simulation.tick();
     items.map((d) => {
@@ -13619,9 +15048,10 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
   return items;
 };
 var getSortOrder = (item, cachedOrders, i = 0) => {
+  var _a, _b, _c;
   if (cachedOrders[item.path])
     return cachedOrders[item.path];
-  if (cachedOrders[item.path?.split("/")?.slice(0, -1)?.join("/")]) {
+  if (cachedOrders[(_c = (_b = (_a = item.path) == null ? void 0 : _a.split("/")) == null ? void 0 : _b.slice(0, -1)) == null ? void 0 : _c.join("/")]) {
     return -1e8;
   }
   if (item.name === "public")
@@ -13631,14 +15061,47 @@ var getSortOrder = (item, cachedOrders, i = 0) => {
 
 // src/index.jsx
 var main = async () => {
+  core.info("[INFO] Usage https://github.com/githubocto/repo-visualizer#readme");
+  core.startGroup("Configuration");
+  const username = "repo-visualizer";
+  await (0, import_exec.exec)("git", ["config", "user.name", username]);
+  await (0, import_exec.exec)("git", [
+    "config",
+    "user.email",
+    "wattenberger@github.com"
+  ]);
+  core.endGroup();
   const data = await processDir(`./`);
-  const string = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
+  const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data
   }));
-  await import_fs2.default.writeFileSync("./diagram.svg", string);
+  const outputFile = core.getInput("output_file") || "./diagram.svg";
+  await import_fs2.default.writeFileSync(outputFile, componentCodeString);
+  await (0, import_exec.exec)("git", ["add", outputFile]);
+  const diff = await execWithOutput("git", ["diff", "--exit-code", outputFile]);
+  if (!diff) {
+    core.info("[INFO] No changes to the repo detected, exiting");
+    return;
+  }
+  (0, import_exec.exec)("git", ["commit", "-m", "Repo visualizer: updated diagram"]);
+  await (0, import_exec.exec)("git", ["push"]);
   console.log("All set!");
 };
 main();
+function execWithOutput(command, options) {
+  return new Promise(function(resolve, reject) {
+    (0, import_exec.exec)(command, {
+      listeners: {
+        stdout: function(data) {
+          resolve(stdout);
+        },
+        stderr: function(data) {
+          reject(stderr);
+        }
+      }
+    }, options);
+  });
+}
 /*
 object-assign
 (c) Sindre Sorhus
