@@ -1,3 +1,4 @@
+import { github } from '@actions/github'
 import { exec } from '@actions/exec'
 import * as core from '@actions/core'
 import React from 'react';
@@ -11,15 +12,22 @@ const main = async () => {
   core.info('[INFO] Usage https://github.com/githubocto/repo-visualizer#readme')
 
   core.startGroup('Configuration')
-  const username = 'repo-visualizer'
-  await exec('git', ['config', 'user.name', username])
-  await exec('git', [
-    'config',
-    'user.email',
-    // `${username}@users.noreply.github.com`,
-    "wattenberger@github.com"
-  ])
+  const myToken = core.getInput('github_token');
+  const octokit = github.getOctokit(myToken)
+  const context = github.context;
+  const repo = context.repo;
+
+  // const username = 'repo-visualizer'
+  // await exec('git', ['config', 'user.name', username])
+  // await exec('git', [
+  //   'config',
+  //   'user.email',
+  //   // `${username}@users.noreply.github.com`,
+  //   "wattenberger@github.com"
+  // ])
+
   core.endGroup()
+
 
   const data = await processDir(`./`);
 
@@ -29,16 +37,31 @@ const main = async () => {
 
   await fs.writeFileSync(outputFile, componentCodeString)
 
-  await exec('git', ['add', outputFile])
-  const diff = await execWithOutput('git', ['status', '--porcelain', outputFile])
-  core.info(`diff: ${diff}`)
-  if (!diff) {
-    core.info('[INFO] No changes to the repo detected, exiting')
-    return
-  }
 
-  exec('git', ['commit', '-m', "Repo visualizer: updated diagram"])
-  await exec('git', ['push'])
+  // add outputFile to git
+  // await execWithOutput('git', ['add', outputFile])
+
+
+
+  await octokit.repos.createStatus({
+    owner: repo.owner.login,
+    repo: repo.name,
+    sha: context.sha,
+    state: 'success',
+    target_url: `${context.base_url}/${outputFile}`,
+    description: 'Repo visualizer: updated diagram',
+    context: 'Repo visualizer: updated diagram',
+  })
+  // await exec('git', ['add', outputFile])
+  // const diff = await execWithOutput('git', ['status', '--porcelain', outputFile])
+  // core.info(`diff: ${diff}`)
+  // if (!diff) {
+  //   core.info('[INFO] No changes to the repo detected, exiting')
+  //   return
+  // }
+
+  // exec('git', ['commit', '-m', "Repo visualizer: updated diagram"])
+  // await exec('git', ['push'])
 
   console.log("All set!")
 }

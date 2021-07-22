@@ -13,5 +13,6 @@ A path (relative to the root of your repo) to where you would like the diagram t
 ```
 uses: githubocto/repo-visualizer@v1.0
   with:
+    github_token: ${{ secrets.GITHUB_TOKEN }}
     output_file: 'images/diagram.svg'
 ```

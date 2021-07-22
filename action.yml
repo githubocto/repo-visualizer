@@ -10,4 +10,4 @@ runs:
   main: "index.js"
 branding:
   color: "purple"
-  icon: "download-cloud"
+  icon: "target"
