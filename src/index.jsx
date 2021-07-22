@@ -30,7 +30,7 @@ const main = async () => {
   await fs.writeFileSync(outputFile, componentCodeString)
 
   await exec('git', ['add', outputFile])
-  const diff = await execWithOutput('git', ['diff', outputFile])
+  const diff = await exec('git', ['diff', outputFile])
   core.info(`diff: ${diff}`)
   if (!diff) {
     core.info('[INFO] No changes to the repo detected, exiting')
@@ -44,25 +44,3 @@ const main = async () => {
 }
 
 main()
-
-function execWithOutput(command, args) {
-  return new Promise(function (resolve, reject) {
-    try {
-      exec(command, args, {
-        listeners: {
-          stdout: function (res) {
-            core.info(res.toString())
-            resolve(res.toString())
-          },
-          stderr: function (res) {
-            core.info(res.toString())
-            reject(res.toString())
-          }
-        }
-      })
-    } catch (e) {
-      reject(e)
-    }
-  })
-}
-
