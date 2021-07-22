@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build": "node_modules/.bin/esbuild --target=es2020 ./src/index.jsx --bundle --platform=node --outfile=index.js"
+  },
+  "dependencies": {
+    "@actions/core": "^1.4.0",
+    "d3": "^7.0.0",
+    "esbuild": "^0.12.15",
+    "lodash": "^4.17.21",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}
