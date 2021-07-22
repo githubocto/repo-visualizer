@@ -53,7 +53,8 @@ function execWithOutput(command, options) {
           resolve(res.toString())
         },
         stderr: function (res) {
-          reject(res)
+          core.info(res.toString())
+          reject(res.toString())
         }
       }
     })
