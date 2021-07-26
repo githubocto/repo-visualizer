@@ -123,8 +123,8 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
         const hasChildWithNoChildren = d.children.filter((d) =>
           !d.children?.length
         ).length > 1;
-        if (hasChildWithNoChildren) return 9;
-        return 15;
+        if (hasChildWithNoChildren) return 4;
+        return 9;
         // const hasChildren = !!d.children?.find((d) => d?.children?.length);
         // return hasChildren ? 60 : 8;
         // return [60, 20, 12][d.depth] || 5;
@@ -583,7 +583,7 @@ const reflowSiblings = (
       originalY: d.y,
     };
   })];
-  const paddingScale = scaleLinear().domain([10, 1]).range([3, 30]).clamp(true);
+  const paddingScale = scaleLinear().domain([10, 1]).range([3, 10]).clamp(true);
   let simulation = forceSimulation(items)
     .force(
       "centerX",
