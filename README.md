@@ -18,7 +18,7 @@ A list of paths to exclude from the diagram, separated by commas.
 
 For example: dist,node_modules
 
-Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock
+Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.vscode,package-lock.json,yarn.lock
 
 ## Example usage
 

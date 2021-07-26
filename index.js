@@ -10158,7 +10158,7 @@ var processDir = async (rootPath, excludedPaths = []) => {
     console.log("no rootPath specified");
     return;
   }
-  const foldersToIgnore = excludedPaths;
+  const foldersToIgnore = [".git", ...excludedPaths];
   const fullPathFoldersToIgnore = foldersToIgnore.map((d) => `${rootPath}/${d}`);
   const getFileStats = async (path = "") => {
     const stats = await import_fs.default.statSync(path);

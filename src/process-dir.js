@@ -6,7 +6,7 @@ export const processDir = async (rootPath, excludedPaths = []) => {
     return;
   }
 
-  const foldersToIgnore = excludedPaths
+  const foldersToIgnore = [.git, ...excludedPaths]
   const fullPathFoldersToIgnore = foldersToIgnore.map((d) =>
     `${rootPath}/${d}`
   );
