@@ -14630,8 +14630,8 @@ var Tree = ({ data, filesChanged = [] }) => {
         return !((_a = d2.children) == null ? void 0 : _a.length);
       }).length > 1;
       if (hasChildWithNoChildren)
-        return 9;
-      return 15;
+        return 4;
+      return 9;
     })(hierarchicalData);
     packedTree.children = reflowSiblings(packedTree.children, cachedPositions.current);
     const children2 = packedTree.descendants();
@@ -14965,7 +14965,7 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
       originalY: d.y
     };
   })];
-  const paddingScale = linear2().domain([10, 1]).range([3, 30]).clamp(true);
+  const paddingScale = linear2().domain([10, 1]).range([3, 10]).clamp(true);
   let simulation = simulation_default(items).force("centerX", x_default2(width / 2).strength(items[0].depth <= 2 ? 0.01 : 0)).force("centerY", y_default2(height / 2).strength(items[0].depth <= 2 ? 0.05 : 0)).force("centerX2", x_default2(parentPosition == null ? void 0 : parentPosition[0]).strength(parentPosition ? 0.5 : 0)).force("centerY2", y_default2(parentPosition == null ? void 0 : parentPosition[1]).strength(parentPosition ? 0.5 : 0)).force("x", x_default2((d) => {
     var _a;
     return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) || width / 2;
