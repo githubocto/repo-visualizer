@@ -14569,23 +14569,27 @@ var keepCircleInsideCircle = (parentR, parentPosition, childR, childPosition) =>
 
 // src/Tree.tsx
 var fileColors = {
-  ts: "#45aaf2",
-  tsx: "#0fb9b1",
-  js: "#6473F2",
-  jsx: "#3dc1d3",
-  md: "#FFC312",
-  json: "#E15F41",
-  csv: "#D8C959",
-  svg: "#EA4C85",
-  css: "#E97BF2",
-  svelte: "#D9D2C2",
+  ts: "#29CBBA",
+  tsx: "#12B9B1",
+  js: "#CE83F1",
+  jsx: "#C56BF0",
+  md: "#6473F2",
+  json: "#FDA7DF",
+  csv: "#D980FA",
+  svg: "#FFC312",
+  css: "#C3E438",
+  svelte: "#B53471",
   scss: "#9980FA",
-  html: "#ffb8b8",
-  go: "#c7ecee",
+  html: "#C7ECEE",
+  png: "#45aaf2",
+  jpg: "#3dc1d3",
+  go: "#E67E23",
   rb: "#eb4d4b",
-  m: "#0fb9b1",
-  py: "#9980FA",
-  sh: "#badc58"
+  sh: "#badc58",
+  m: "#FFD428",
+  py: "#5758BB",
+  mp4: "#788BA3",
+  webm: "#4B6584"
 };
 var colorTheme = "file";
 var looseFilesId = "__structure_loose_file__";
@@ -14603,9 +14607,9 @@ var Tree = ({ data, filesChanged = [] }) => {
       if (isParent) {
         const extensions = (0, import_countBy.default)(d.children, (c2) => c2.extension);
         const mainExtension = (_a = (0, import_maxBy.default)((0, import_entries.default)(extensions), ([k, v]) => v)) == null ? void 0 : _a[0];
-        return fileColors[mainExtension] || "#b4b4b6";
+        return fileColors[mainExtension] || "#CED6E0";
       }
-      return fileColors[d.extension] || "#b4b4b6";
+      return fileColors[d.extension] || "#CED6E0";
     } else if (colorTheme === "changes") {
       const scale = linear2().domain([0, 50]).range(["#f4f4f4", "#0fb9b1"]).clamp(true);
       const numberOfChanges = (_b = d == null ? void 0 : d.commits) == null ? void 0 : _b.length;
@@ -14763,7 +14767,7 @@ var Tree = ({ data, filesChanged = [] }) => {
       opacity: "0.2",
       strokeWidth: "1",
       fill: "none"
-    }) : /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("circle", {
+    }) : /* @__PURE__ */ import_react2.default.createElement("circle", {
       style: {
         filter: isHighlighted ? "url(#glow)" : void 0,
         transition: "all 0.5s ease-out"
@@ -14771,10 +14775,34 @@ var Tree = ({ data, filesChanged = [] }) => {
       r: runningR,
       strokeWidth: selectedNodeId === data2.path ? 3 : 0,
       stroke: "#374151"
-    }), (isHighlighted || !doHighlight && r > 30 || isInActiveImport) && /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("text", {
+    }));
+  }), packedData.map(({ x: x2, y: y2, r, depth, data: data2, children: children2 }) => {
+    if (depth <= 0)
+      return null;
+    if (depth > maxDepth)
+      return null;
+    const isParent = !!children2 && depth !== maxDepth;
+    let runningR = r;
+    if (data2.path === looseFilesId)
+      return null;
+    const isHighlighted = filesChanged.includes(data2.path);
+    const doHighlight = !!filesChanged.length;
+    const isInActiveImport = !!imports.find((i) => i.path === data2.path || i.toPath === data2.path);
+    if (isParent)
+      return null;
+    if (!(isHighlighted || !doHighlight && !selectedNode && r > 30 || isInActiveImport))
+      return null;
+    return /* @__PURE__ */ import_react2.default.createElement("g", {
+      key: data2.path,
+      style: {
+        fill: doHighlight ? isHighlighted ? "#FCE68A" : "#29081916" : data2.color,
+        transition: `transform ${isHighlighted ? "0.5s" : "0s"} ease-out, fill 0.1s ease-out`
+      },
+      transform: `translate(${x2}, ${y2})`
+    }, /* @__PURE__ */ import_react2.default.createElement("text", {
       style: {
         pointerEvents: "none",
-        opacity: 0.8,
+        opacity: 0.9,
         fontSize: "14px",
         fontWeight: 500,
         transition: "all 0.5s ease-out"
@@ -14783,30 +14811,31 @@ var Tree = ({ data, filesChanged = [] }) => {
       textAnchor: "middle",
       dominantBaseline: "middle",
       stroke: "white",
-      strokeWidth: "3"
+      strokeWidth: "3",
+      strokeLinejoin: "round"
     }, data2.label), /* @__PURE__ */ import_react2.default.createElement("text", {
       style: {
         pointerEvents: "none",
-        opacity: 0.8,
+        opacity: 1,
         fontSize: "14px",
         fontWeight: 500,
         transition: "all 0.5s ease-out"
       },
-      fill: "#4B5563",
       textAnchor: "middle",
       dominantBaseline: "middle"
     }, data2.label), /* @__PURE__ */ import_react2.default.createElement("text", {
       style: {
         pointerEvents: "none",
-        opacity: 0.8,
+        opacity: 0.9,
         fontSize: "14px",
         fontWeight: 500,
-        mixBlendMode: "multiply",
+        mixBlendMode: "color-burn",
         transition: "all 0.5s ease-out"
       },
+      fill: "#110101",
       textAnchor: "middle",
       dominantBaseline: "middle"
-    }, data2.label))));
+    }, data2.label));
   }), imports.map(({ x: x2, y: y2, d, path, toPath, color: color2 }) => {
     return /* @__PURE__ */ import_react2.default.createElement("g", {
       style: {
@@ -14841,7 +14870,7 @@ var Tree = ({ data, filesChanged = [] }) => {
       return null;
     if (data2.path === looseFilesId)
       return null;
-    if (r < 20 && selectedNodeId !== data2.path)
+    if (r < 10 && selectedNodeId !== data2.path)
       return null;
     return /* @__PURE__ */ import_react2.default.createElement("g", {
       key: data2.path,
@@ -14849,7 +14878,7 @@ var Tree = ({ data, filesChanged = [] }) => {
       transform: `translate(${x2}, ${y2})`
     }, /* @__PURE__ */ import_react2.default.createElement(CircleText, {
       style: { fontSize: "14px", transition: "all 0.5s ease-out" },
-      r: r - 3,
+      r: Math.max(20, r - 3),
       fill: "#374151",
       stroke: "white",
       strokeWidth: "6",
@@ -14857,7 +14886,7 @@ var Tree = ({ data, filesChanged = [] }) => {
     }), /* @__PURE__ */ import_react2.default.createElement(CircleText, {
       style: { fontSize: "14px", transition: "all 0.5s ease-out" },
       fill: "#374151",
-      r: r - 3,
+      r: Math.max(20, r - 3),
       text: data2.label
     }));
   }), !!selectedNode && (!selectedNode.children || selectedNode.depth === maxDepth) && /* @__PURE__ */ import_react2.default.createElement("g", {

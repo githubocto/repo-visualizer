@@ -45,23 +45,27 @@ type ProcessedDataItem = {
   children: Array<ProcessedDataItem>;
 };
 const fileColors = {
-  ts: "#45aaf2",
-  tsx: "#0fb9b1",
-  js: "#6473F2",
-  jsx: "#3dc1d3",
-  md: "#FFC312",
-  json: "#E15F41",
-  csv: "#D8C959",
-  svg: "#EA4C85",
-  css: "#E97BF2",
-  svelte: "#D9D2C2",
+  ts: "#29CBBA",
+  tsx: "#12B9B1",
+  js: "#CE83F1",
+  jsx: "#C56BF0",
+  md: "#6473F2",
+  json: "#FDA7DF",
+  csv: "#D980FA",
+  svg: "#FFC312",
+  css: "#C3E438",
+  svelte: "#B53471",
   scss: "#9980FA",
-  html: "#ffb8b8",
-  go: "#c7ecee",
+  html: "#C7ECEE",
+  png: "#45aaf2",
+  jpg: "#3dc1d3",
+  go: "#E67E23",
   rb: "#eb4d4b",
-  m: "#0fb9b1",
-  py: "#9980FA",
   sh: "#badc58",
+  m: "#FFD428",
+  py: "#5758BB",
+  mp4: "#788BA3",
+  webm: "#4B6584",
 };
 const colorThemes = ["file", "changes", "last-change"];
 const colorTheme = "file";
@@ -80,9 +84,9 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
       if (isParent) {
         const extensions = countBy(d.children, (c) => c.extension);
         const mainExtension = maxBy(entries(extensions), ([k, v]) => v)?.[0];
-        return fileColors[mainExtension] || "#b4b4b6";
+        return fileColors[mainExtension] || "#CED6E0";
       }
-      return fileColors[d.extension] || "#b4b4b6";
+      return fileColors[d.extension] || "#CED6E0";
     } else if (colorTheme === "changes") {
       const scale = scaleLinear()
         .domain([0, 50])
@@ -223,6 +227,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
       }).filter(Boolean)
     )),
   ).filter(Boolean);
+  // console.log(packedData)
 
   return (
     <svg
@@ -266,9 +271,8 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
               fill: doHighlight
                 ? isHighlighted ? "#FCE68A" : "#29081916"
                 : data.color,
-              transition: `transform ${
-                isHighlighted ? "0.5s" : "0s"
-              } ease-out, fill 0.1s ease-out`,
+              transition: `transform ${isHighlighted ? "0.5s" : "0s"
+                } ease-out, fill 0.1s ease-out`,
               // opacity: doHighlight && !isHighlighted ? 0.6 : 1,
             }}
             transform={`translate(${x}, ${y})`}
@@ -291,89 +295,105 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
                   opacity="0.2"
                   strokeWidth="1"
                   fill="none"
-                  // className={`${
-                  //   depth % 2 ? "text-gray-100" : "text-white"
-                  // } fill-current`}
-                  // // stroke="#37415122"
+                // className={`${
+                //   depth % 2 ? "text-gray-100" : "text-white"
+                // } fill-current`}
+                // // stroke="#37415122"
                 />
               )
               : (
-                <>
-                  <circle
-                    style={{
-                      filter: isHighlighted ? "url(#glow)" : undefined,
-                      transition: "all 0.5s ease-out",
-                    }}
-                    r={runningR}
-                    strokeWidth={selectedNodeId === data.path ? 3 : 0}
-                    stroke="#374151"
-                  />
-                  {(
-                    // r > 30 ||
-                    isHighlighted || (!doHighlight && r > 30) ||
-                    isInActiveImport
-                  ) && (
-                    <>
-                      {
-                        /* <text
-                      className="text-xs font-medium opacity-10"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      stroke="white"
-                      strokeWidth="5"
-                      strokeLinejoin="round"
-                    >
-                      {data.name}
-                    </text> */
-                      }
-                      <text
-                        style={{
-                          pointerEvents: "none",
-                          opacity: 0.8,
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          transition: "all 0.5s ease-out",
-                        }}
-                        fill="#4B5563"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        stroke="white"
-                        strokeWidth="3"
-                      >
-                        {data.label}
-                      </text>
-                      <text
-                        style={{
-                          pointerEvents: "none",
-                          opacity: 0.8,
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          transition: "all 0.5s ease-out",
-                        }}
-                        fill="#4B5563"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                      >
-                        {data.label}
-                      </text>
-                      <text
-                        style={{
-                          pointerEvents: "none",
-                          opacity: 0.8,
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          mixBlendMode: "multiply",
-                          transition: "all 0.5s ease-out",
-                        }}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                      >
-                        {data.label}
-                      </text>
-                    </>
-                  )}
-                </>
+                <circle
+                  style={{
+                    filter: isHighlighted ? "url(#glow)" : undefined,
+                    transition: "all 0.5s ease-out",
+                  }}
+                  r={runningR}
+                  strokeWidth={selectedNodeId === data.path ? 3 : 0}
+                  stroke="#374151"
+                />
               )}
+          </g>
+        );
+      })}
+
+      {packedData.map(({ x, y, r, depth, data, children }) => {
+        if (depth <= 0) return null;
+        if (depth > maxDepth) return null;
+        const isParent = !!children && depth !== maxDepth;
+        let runningR = r;
+        // if (depth <= 1 && !children) runningR *= 3;
+        if (data.path === looseFilesId) return null;
+        const isHighlighted = filesChanged.includes(data.path);
+        const doHighlight = !!filesChanged.length;
+        const isInActiveImport = !!imports.find((i) =>
+          i.path === data.path || i.toPath === data.path
+        );
+        if (isParent) return null
+        if (!(isHighlighted
+          || ((!doHighlight && !selectedNode) && r > 30)
+          || isInActiveImport)
+        ) return null
+
+        return (
+          <g
+            key={data.path}
+            // className="transition-all duration-300"
+            style={{
+              fill: doHighlight
+                ? isHighlighted ? "#FCE68A" : "#29081916"
+                : data.color,
+              transition: `transform ${isHighlighted ? "0.5s" : "0s"
+                } ease-out, fill 0.1s ease-out`,
+              // opacity: doHighlight && !isHighlighted ? 0.6 : 1,
+            }}
+            transform={`translate(${x}, ${y})`}
+          >
+
+            <text
+              style={{
+                pointerEvents: "none",
+                opacity: 0.9,
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 0.5s ease-out",
+              }}
+              fill="#4B5563"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinejoin="round"
+            >
+              {data.label}
+            </text>
+            <text
+              style={{
+                pointerEvents: "none",
+                opacity: 1,
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 0.5s ease-out",
+              }}
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
+              {data.label}
+            </text>
+            <text
+              style={{
+                pointerEvents: "none",
+                opacity: 0.9,
+                fontSize: "14px",
+                fontWeight: 500,
+                mixBlendMode: "color-burn",
+                transition: "all 0.5s ease-out",
+              }}
+              fill="#110101"
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
+              {data.label}
+            </text>
           </g>
         );
       })}
@@ -416,7 +436,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
         const isParent = !!children && depth !== maxDepth;
         if (!isParent) return null;
         if (data.path === looseFilesId) return null;
-        if (r < 20 && selectedNodeId !== data.path) return null;
+        if (r < 10 && selectedNodeId !== data.path) return null;
         return (
           <g
             key={data.path}
@@ -425,7 +445,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
           >
             <CircleText
               style={{ fontSize: "14px", transition: "all 0.5s ease-out" }}
-              r={r - 3}
+              r={Math.max(20, r - 3)}
               fill="#374151"
               stroke="white"
               strokeWidth="6"
@@ -434,7 +454,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
             <CircleText
               style={{ fontSize: "14px", transition: "all 0.5s ease-out" }}
               fill="#374151"
-              r={r - 3}
+              r={Math.max(20, r - 3)}
               text={data.label}
             />
           </g>
@@ -554,10 +574,10 @@ const processChild = (
       (["woff", "woff2", "ttf", "png", "jpg", "svg"].includes(extension)
         ? 100
         : // I'm sick of these fonts
-          Math.min(
-            15000,
-            hasExtension ? child.size : Math.min(child.size, 9000),
-          )) + i, // stupid hack to stabilize circle order/position
+        Math.min(
+          15000,
+          hasExtension ? child.size : Math.min(child.size, 9000),
+        )) + i, // stupid hack to stabilize circle order/position
     color: "#fff",
     children,
   };
