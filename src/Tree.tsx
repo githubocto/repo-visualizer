@@ -8,6 +8,7 @@ import {
   pack,
   scaleLinear,
   timeDay,
+  timeFormat,
 } from "d3";
 import { FileType } from "./types";
 import countBy from "lodash/countBy";
@@ -16,7 +17,11 @@ import entries from "lodash/entries";
 import uniqBy from "lodash/uniqBy";
 import flatten from "lodash/flatten";
 import { CircleText } from "./CircleText";
-import { keepBetween, keepCircleInsideCircle, truncateString } from "./utils";
+import {
+  keepBetween,
+  keepCircleInsideCircle,
+  truncateString,
+} from "./utils";
 
 type Props = {
   data: FileType;
@@ -51,11 +56,10 @@ const fileColors = {
   svg: "#EA4C85",
   css: "#E97BF2",
   svelte: "#D9D2C2",
-  // scss: "#9980FA",
+  scss: "#9980FA",
   html: "#ffb8b8",
-  // go: "#c7ecee",
-  // rb: "#eb4d4b",
-  // sh: "#badc58",
+  go: "#c7ecee",
+  rb: "#eb4d4b",
   m: "#0fb9b1",
   py: "#9980FA",
   sh: "#badc58",
@@ -63,8 +67,8 @@ const fileColors = {
 const colorThemes = ["file", "changes", "last-change"];
 const colorTheme = "file";
 const looseFilesId = "__structure_loose_file__";
-const width = 1400;
-const height = 700;
+const width = 1000;
+const height = 1000;
 const maxDepth = 9;
 export const Tree = ({ data, filesChanged = [] }: Props) => {
   const [selectedNodeId, setSelectedNodeId] = useState(null);
@@ -116,12 +120,12 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
     let packedTree = pack()
       .size([width, height * 1.3]) // we'll reflow the tree to be more horizontal, but we want larger bubbles (.pack() sizes the bubbles to fit the space)
       .padding((d) => {
-        if (d.depth <= 0) return 6;
+        if (d.depth <= 0) return 0;
         const hasChildWithNoChildren = d.children.filter((d) =>
           !d.children?.length
         ).length > 1;
-        if (hasChildWithNoChildren) return 6;
-        return 30;
+        if (hasChildWithNoChildren) return 9;
+        return 15;
         // const hasChildren = !!d.children?.find((d) => d?.children?.length);
         // return hasChildren ? 60 : 8;
         // return [60, 20, 12][d.depth] || 5;
@@ -313,21 +317,21 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
                     <>
                       {
                         /* <text
-                          className="text-xs font-medium opacity-10"
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          stroke="white"
-                          strokeWidth="5"
-                          strokeLinejoin="round"
-                        >
-                          {data.name}
-                        </text> */
+                      className="text-xs font-medium opacity-10"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      stroke="white"
+                      strokeWidth="5"
+                      strokeLinejoin="round"
+                    >
+                      {data.name}
+                    </text> */
                       }
                       <text
                         style={{
                           pointerEvents: "none",
                           opacity: 0.8,
-                          fontSize: "10px",
+                          fontSize: "14px",
                           fontWeight: 500,
                           transition: "all 0.5s ease-out",
                         }}
@@ -343,7 +347,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
                         style={{
                           pointerEvents: "none",
                           opacity: 0.8,
-                          fontSize: "10px",
+                          fontSize: "14px",
                           fontWeight: 500,
                           transition: "all 0.5s ease-out",
                         }}
@@ -357,7 +361,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
                         style={{
                           pointerEvents: "none",
                           opacity: 0.8,
-                          fontSize: "10px",
+                          fontSize: "14px",
                           fontWeight: 500,
                           mixBlendMode: "multiply",
                           transition: "all 0.5s ease-out",
@@ -421,17 +425,17 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
             transform={`translate(${x}, ${y})`}
           >
             <CircleText
-              style={{ fontSize: "10px", transition: "all 0.5s ease-out" }}
-              r={r + 6}
+              style={{ fontSize: "14px", transition: "all 0.5s ease-out" }}
+              r={r - 3}
               fill="#374151"
               stroke="white"
-              strokeWidth="4"
+              strokeWidth="6"
               text={data.label}
             />
             <CircleText
-              style={{ fontSize: "10px", transition: "all 0.5s ease-out" }}
+              style={{ fontSize: "14px", transition: "all 0.5s ease-out" }}
               fill="#374151"
-              r={r + 6}
+              r={r - 3}
               text={data.label}
             />
           </g>
@@ -444,7 +448,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
             <text
               style={{
                 pointerEvents: "none",
-                fontSize: "10px",
+                fontSize: "14px",
                 fontWeight: 500,
                 transition: "all 0.5s ease-out",
               }}
@@ -458,7 +462,7 @@ export const Tree = ({ data, filesChanged = [] }: Props) => {
             <text
               style={{
                 pointerEvents: "none",
-                fontSize: "10px",
+                fontSize: "14px",
                 fontWeight: 500,
                 transition: "all 0.5s ease-out",
               }}
@@ -488,7 +492,7 @@ const Legend = ({ fileTypes = [] }) => {
           />
           <text
             x="10"
-            style={{ fontSize: "10px", fontWeight: 300 }}
+            style={{ fontSize: "14px", fontWeight: 300 }}
             dominantBaseline="middle"
           >
             .{extension}
@@ -571,7 +575,7 @@ const reflowSiblings = (
   parentPosition?: [number, number],
 ) => {
   if (!siblings) return;
-  const items = [...siblings.map((d) => {
+  let items = [...siblings.map((d) => {
     return {
       ...d,
       x: cachedPositions[d.data.path]?.[0] || d.x,
@@ -601,38 +605,38 @@ const reflowSiblings = (
     .force(
       "x",
       forceX((d) => cachedPositions[d.data.path]?.[0] || width / 2).strength(
-        (d) => cachedPositions[d.data.path]?.[1] ? 0.5 : 0.1,
+        (d) => cachedPositions[d.data.path]?.[1] ? 0.5 : 0.2,
       ),
     )
     .force(
       "y",
       forceY((d) => cachedPositions[d.data.path]?.[1] || height / 2).strength(
-        (d) => cachedPositions[d.data.path]?.[0] ? 0.5 : 0.6,
+        (d) => cachedPositions[d.data.path]?.[0] ? 0.5 : 0.1,
       ),
     )
     .force(
       "collide",
       forceCollide((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 3)
-        .iterations(13).strength(1),
+        .iterations(9).strength(1),
     )
     .stop();
 
-  for (let i = 0; i < 130; i++) {
+  for (let i = 0; i < 190; i++) {
     simulation.tick();
-    items.map((d) => {
+    items.forEach((d) => {
       d.x = keepBetween(d.r, d.x, width - d.r);
       d.y = keepBetween(d.r + 30, d.y, height - d.r);
 
       if (parentPosition && parentRadius) {
         // keep within radius
-        const newPosition = keepCircleInsideCircle(
+        const containedPosition = keepCircleInsideCircle(
           parentRadius,
           parentPosition,
           d.r,
           [d.x, d.y],
         );
-        d.x = newPosition[0];
-        d.y = newPosition[1];
+        d.x = containedPosition[0];
+        d.y = containedPosition[1];
       }
     });
   }
@@ -671,7 +675,7 @@ const reflowSiblings = (
         )
       );
       if (item.children.length > 4) {
-        if (item.depth > 3) return;
+        // if (item.depth > 5) return;
         item.children.forEach((child) => {
           // move cached positions with the parent
           const childCachedPosition =
@@ -714,4 +718,9 @@ const getSortOrder = (item: ExtendedFileType, cachedOrders, i = 0) => {
   // if (item.depth <= 1) return -10;
   return item.value + -i;
   // return b.value - a.value;
+};
+
+const transformIn = {
+  visible: { transform: "scale(1)", transition: { duration: 0.5 } },
+  hidden: { transform: "scale(0)", transition: { duration: 0.5 } },
 };

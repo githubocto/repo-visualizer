@@ -14568,10 +14568,10 @@ var getAngleFromPosition = (x2, y2) => {
   return Math.atan2(y2, x2) * 180 / Math.PI;
 };
 var keepCircleInsideCircle = (parentR, parentPosition, childR, childPosition) => {
-  const padding = 6;
   const distance = Math.sqrt(Math.pow(parentPosition[0] - childPosition[0], 2) + Math.pow(parentPosition[1] - childPosition[1], 2));
-  if (distance > parentR + childR + padding) {
-    const angle = getAngleFromPosition(parentPosition[0] - childPosition[0], parentPosition[1] - childPosition[1]);
+  const angle = getAngleFromPosition(childPosition[0] - parentPosition[0], childPosition[1] - parentPosition[1]);
+  const padding = angle < -40 && angle > -150 ? 13 : 2;
+  if (distance > parentR - childR - padding) {
     const diff = getPositionFromAngleAndDistance(angle, parentR - childR - padding);
     return [
       parentPosition[0] + diff[0],
@@ -14593,15 +14593,18 @@ var fileColors = {
   svg: "#EA4C85",
   css: "#E97BF2",
   svelte: "#D9D2C2",
+  scss: "#9980FA",
   html: "#ffb8b8",
+  go: "#c7ecee",
+  rb: "#eb4d4b",
   m: "#0fb9b1",
   py: "#9980FA",
   sh: "#badc58"
 };
 var colorTheme = "file";
 var looseFilesId = "__structure_loose_file__";
-var width = 1400;
-var height = 700;
+var width = 1e3;
+var height = 1e3;
 var maxDepth = 9;
 var Tree = ({ data, filesChanged = [] }) => {
   const [selectedNodeId, setSelectedNodeId] = (0, import_react2.useState)(null);
@@ -14635,14 +14638,14 @@ var Tree = ({ data, filesChanged = [] }) => {
     });
     let packedTree = pack_default().size([width, height * 1.3]).padding((d) => {
       if (d.depth <= 0)
-        return 6;
+        return 0;
       const hasChildWithNoChildren = d.children.filter((d2) => {
         var _a;
         return !((_a = d2.children) == null ? void 0 : _a.length);
       }).length > 1;
       if (hasChildWithNoChildren)
-        return 6;
-      return 30;
+        return 9;
+      return 15;
     })(hierarchicalData);
     packedTree.children = reflowSiblings(packedTree.children, cachedPositions.current);
     const children2 = packedTree.descendants();
@@ -14786,7 +14789,7 @@ var Tree = ({ data, filesChanged = [] }) => {
       style: {
         pointerEvents: "none",
         opacity: 0.8,
-        fontSize: "10px",
+        fontSize: "14px",
         fontWeight: 500,
         transition: "all 0.5s ease-out"
       },
@@ -14799,7 +14802,7 @@ var Tree = ({ data, filesChanged = [] }) => {
       style: {
         pointerEvents: "none",
         opacity: 0.8,
-        fontSize: "10px",
+        fontSize: "14px",
         fontWeight: 500,
         transition: "all 0.5s ease-out"
       },
@@ -14810,7 +14813,7 @@ var Tree = ({ data, filesChanged = [] }) => {
       style: {
         pointerEvents: "none",
         opacity: 0.8,
-        fontSize: "10px",
+        fontSize: "14px",
         fontWeight: 500,
         mixBlendMode: "multiply",
         transition: "all 0.5s ease-out"
@@ -14859,16 +14862,16 @@ var Tree = ({ data, filesChanged = [] }) => {
       style: { pointerEvents: "none", transition: "all 0.5s ease-out" },
       transform: `translate(${x2}, ${y2})`
     }, /* @__PURE__ */ import_react2.default.createElement(CircleText, {
-      style: { fontSize: "10px", transition: "all 0.5s ease-out" },
-      r: r + 6,
+      style: { fontSize: "14px", transition: "all 0.5s ease-out" },
+      r: r - 3,
       fill: "#374151",
       stroke: "white",
-      strokeWidth: "4",
+      strokeWidth: "6",
       text: data2.label
     }), /* @__PURE__ */ import_react2.default.createElement(CircleText, {
-      style: { fontSize: "10px", transition: "all 0.5s ease-out" },
+      style: { fontSize: "14px", transition: "all 0.5s ease-out" },
       fill: "#374151",
-      r: r + 6,
+      r: r - 3,
       text: data2.label
     }));
   }), !!selectedNode && (!selectedNode.children || selectedNode.depth === maxDepth) && /* @__PURE__ */ import_react2.default.createElement("g", {
@@ -14876,7 +14879,7 @@ var Tree = ({ data, filesChanged = [] }) => {
   }, /* @__PURE__ */ import_react2.default.createElement("text", {
     style: {
       pointerEvents: "none",
-      fontSize: "10px",
+      fontSize: "14px",
       fontWeight: 500,
       transition: "all 0.5s ease-out"
     },
@@ -14887,7 +14890,7 @@ var Tree = ({ data, filesChanged = [] }) => {
   }, selectedNode.data.label), /* @__PURE__ */ import_react2.default.createElement("text", {
     style: {
       pointerEvents: "none",
-      fontSize: "10px",
+      fontSize: "14px",
       fontWeight: 500,
       transition: "all 0.5s ease-out"
     },
@@ -14908,7 +14911,7 @@ var Legend = ({ fileTypes = [] }) => {
     fill: fileColors[extension]
   }), /* @__PURE__ */ import_react2.default.createElement("text", {
     x: "10",
-    style: { fontSize: "10px", fontWeight: 300 },
+    style: { fontSize: "14px", fontWeight: 300 },
     dominantBaseline: "middle"
   }, ".", extension))), /* @__PURE__ */ import_react2.default.createElement("div", {
     className: "w-20 whitespace-nowrap text-sm text-gray-500 font-light italic"
@@ -14966,7 +14969,7 @@ var processChild = (child, getColor, cachedOrders, i = 0) => {
 var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPosition) => {
   if (!siblings)
     return;
-  const items = [...siblings.map((d) => {
+  let items = [...siblings.map((d) => {
     var _a, _b;
     return {
       ...d,
@@ -14982,23 +14985,23 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
     return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) || width / 2;
   }).strength((d) => {
     var _a;
-    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[1]) ? 0.5 : 0.1;
+    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[1]) ? 0.5 : 0.2;
   })).force("y", y_default2((d) => {
     var _a;
     return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[1]) || height / 2;
   }).strength((d) => {
     var _a;
-    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) ? 0.5 : 0.6;
-  })).force("collide", collide_default((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 3).iterations(13).strength(1)).stop();
-  for (let i = 0; i < 130; i++) {
+    return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) ? 0.5 : 0.1;
+  })).force("collide", collide_default((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 3).iterations(9).strength(1)).stop();
+  for (let i = 0; i < 190; i++) {
     simulation.tick();
-    items.map((d) => {
+    items.forEach((d) => {
       d.x = keepBetween(d.r, d.x, width - d.r);
       d.y = keepBetween(d.r + 30, d.y, height - d.r);
       if (parentPosition && parentRadius) {
-        const newPosition = keepCircleInsideCircle(parentRadius, parentPosition, d.r, [d.x, d.y]);
-        d.x = newPosition[0];
-        d.y = newPosition[1];
+        const containedPosition = keepCircleInsideCircle(parentRadius, parentPosition, d.r, [d.x, d.y]);
+        d.x = containedPosition[0];
+        d.y = containedPosition[1];
       }
     });
   }
@@ -15025,8 +15028,6 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
       ];
       item.children = item.children.map((child) => repositionChildren(child, itemReflowDiff[0], itemReflowDiff[1]));
       if (item.children.length > 4) {
-        if (item.depth > 3)
-          return;
         item.children.forEach((child) => {
           const childCachedPosition = repositionedCachedPositions[child.data.path];
           if (childCachedPosition) {

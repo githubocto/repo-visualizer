@@ -32,16 +32,17 @@ export const keepCircleInsideCircle = (
   childR: number,
   childPosition: [number, number],
 ): [number, number] => {
-  const padding = 6;
   const distance = Math.sqrt(
     Math.pow(parentPosition[0] - childPosition[0], 2) +
       Math.pow(parentPosition[1] - childPosition[1], 2),
   );
-  if (distance > (parentR + childR + padding)) {
-    const angle = getAngleFromPosition(
-      parentPosition[0] - childPosition[0],
-      parentPosition[1] - childPosition[1],
-    );
+  const angle = getAngleFromPosition(
+    childPosition[0] - parentPosition[0],
+    childPosition[1] - parentPosition[1],
+  );
+  // leave space for labels
+  const padding = angle < -40 && angle > -150 ? 13 : 2;
+  if (distance > (parentR - childR - padding)) {
     const diff = getPositionFromAngleAndDistance(
       angle,
       parentR - childR - padding,
