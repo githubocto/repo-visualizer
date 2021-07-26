@@ -5,6 +5,9 @@ inputs:
   output_file:
     description: "A path (relative to the root of your repo) to where you would like the diagram to live. For example: images/diagram.svg. Default: diagram.svg"
     required: false
+  excluded_paths:
+    description: "A list of paths to exclude from the diagram. For example: dist"
+    required: false
 runs:
   using: "node12"
   main: "index.js"

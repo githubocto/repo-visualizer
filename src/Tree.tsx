@@ -8,7 +8,6 @@ import {
   pack,
   scaleLinear,
   timeDay,
-  timeFormat,
 } from "d3";
 import { FileType } from "./types";
 import countBy from "lodash/countBy";

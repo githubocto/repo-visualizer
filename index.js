@@ -10153,7 +10153,7 @@ var import_fs2 = __toModule(require("fs"));
 
 // src/process-dir.js
 var import_fs = __toModule(require("fs"));
-var processDir = async (rootPath) => {
+var processDir = async (rootPath, excludedPaths = []) => {
   if (!rootPath) {
     console.log("no rootPath specified");
     return;
@@ -10171,7 +10171,8 @@ var processDir = async (rootPath) => {
     ".git",
     ".vscode",
     "package-lock.json",
-    "yarn.lock"
+    "yarn.lock",
+    ...excludedPaths
   ];
   const fullPathFoldersToIgnore = foldersToIgnore.map((d) => `${rootPath}/${d}`);
   const getFileStats = async (path = "") => {
@@ -15072,7 +15073,8 @@ var main = async () => {
     "wattenberger@github.com"
   ]);
   core.endGroup();
-  const data = await processDir(`./`);
+  const excludedPaths = core.getInput("excluded_paths") || [];
+  const data = await processDir(`./`, excludedPaths);
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data
   }));

@@ -1,6 +1,6 @@
 import fs from "fs";
 
-export const processDir = async (rootPath) => {
+export const processDir = async (rootPath, excludedPaths = []) => {
   if (!rootPath) {
     console.log("no rootPath specified");
     return;
@@ -20,6 +20,7 @@ export const processDir = async (rootPath) => {
     ".vscode",
     "package-lock.json",
     "yarn.lock",
+    ...excludedPaths,
   ];
   const fullPathFoldersToIgnore = foldersToIgnore.map((d) =>
     `${rootPath}/${d}`

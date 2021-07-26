@@ -6,7 +6,19 @@ A GitHub Action that creates an SVG diagram of your repo.
 
 ## `output_file`
 
-A path (relative to the root of your repo) to where you would like the diagram to live. For example: images/diagram.svg. Default: diagram.svg
+A path (relative to the root of your repo) to where you would like the diagram to live.
+
+For example: images/diagram.svg
+
+Default: diagram.svg
+
+## `excluded_paths`
+
+A list of paths to exclude from the diagram.
+
+For example: dist
+
+Default: ""
 
 ## Example usage
 

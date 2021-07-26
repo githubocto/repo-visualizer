@@ -23,9 +23,12 @@ const main = async () => {
   core.endGroup()
 
 
-  const data = await processDir(`./`);
+  const excludedPaths = core.getInput("excluded_paths") || []
+  const data = await processDir(`./`, excludedPaths);
 
-  const componentCodeString = ReactDOMServer.renderToStaticMarkup(<Tree data={data} />);
+  const componentCodeString = ReactDOMServer.renderToStaticMarkup(
+    <Tree data={data} />
+  );
 
   const outputFile = core.getInput("output_file") || "./diagram.svg"
 
