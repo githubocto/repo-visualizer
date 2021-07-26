@@ -6,22 +6,7 @@ export const processDir = async (rootPath, excludedPaths = []) => {
     return;
   }
 
-  const foldersToIgnore = [
-    "node_modules",
-    "bower_components",
-    "dist",
-    "out",
-    "build",
-    "eject",
-    ".next",
-    ".netlify",
-    ".yarn",
-    ".git",
-    ".vscode",
-    "package-lock.json",
-    "yarn.lock",
-    ...excludedPaths,
-  ];
+  const foldersToIgnore = excludedPaths
   const fullPathFoldersToIgnore = foldersToIgnore.map((d) =>
     `${rootPath}/${d}`
   );

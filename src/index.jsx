@@ -23,7 +23,8 @@ const main = async () => {
   core.endGroup()
 
 
-  const excludedPaths = core.getInput("excluded_paths") || []
+  const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock"
+  const excludedPaths = excludedPathsString.split(",").map(str => str.trim())
   const data = await processDir(`./`, excludedPaths);
 
   const componentCodeString = ReactDOMServer.renderToStaticMarkup(

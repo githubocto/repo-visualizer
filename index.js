@@ -10158,22 +10158,7 @@ var processDir = async (rootPath, excludedPaths = []) => {
     console.log("no rootPath specified");
     return;
   }
-  const foldersToIgnore = [
-    "node_modules",
-    "bower_components",
-    "dist",
-    "out",
-    "build",
-    "eject",
-    ".next",
-    ".netlify",
-    ".yarn",
-    ".git",
-    ".vscode",
-    "package-lock.json",
-    "yarn.lock",
-    ...excludedPaths
-  ];
+  const foldersToIgnore = excludedPaths;
   const fullPathFoldersToIgnore = foldersToIgnore.map((d) => `${rootPath}/${d}`);
   const getFileStats = async (path = "") => {
     const stats = await import_fs.default.statSync(path);
@@ -15073,7 +15058,8 @@ var main = async () => {
     "wattenberger@github.com"
   ]);
   core.endGroup();
-  const excludedPaths = core.getInput("excluded_paths") || [];
+  const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
+  const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
   const data = await processDir(`./`, excludedPaths);
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data

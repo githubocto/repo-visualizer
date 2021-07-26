@@ -14,11 +14,11 @@ Default: diagram.svg
 
 ## `excluded_paths`
 
-A list of paths to exclude from the diagram.
+A list of paths to exclude from the diagram, separated by commas.
 
-For example: dist
+For example: dist,node_modules
 
-Default: ""
+Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock
 
 ## Example usage
 
@@ -31,4 +31,5 @@ You'll need to run the `actions/checkout` Action beforehand, to check out the co
   uses: githubocto/repo-visualizer@main
   with:
     output_file: 'images/diagram.svg'
+    excluded_paths: 'dist,node_modules'
 ```
