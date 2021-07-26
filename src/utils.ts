@@ -41,7 +41,7 @@ export const keepCircleInsideCircle = (
     childPosition[1] - parentPosition[1],
   );
   // leave space for labels
-  const padding = angle < -40 && angle > -150 ? 13 : 2;
+  const padding = angle < -40 && angle > -150 ? 13 : 3;
   if (distance > (parentR - childR - padding)) {
     const diff = getPositionFromAngleAndDistance(
       angle,

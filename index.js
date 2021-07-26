@@ -14556,7 +14556,7 @@ var getAngleFromPosition = (x2, y2) => {
 var keepCircleInsideCircle = (parentR, parentPosition, childR, childPosition) => {
   const distance = Math.sqrt(Math.pow(parentPosition[0] - childPosition[0], 2) + Math.pow(parentPosition[1] - childPosition[1], 2));
   const angle = getAngleFromPosition(childPosition[0] - parentPosition[0], childPosition[1] - parentPosition[1]);
-  const padding = angle < -40 && angle > -150 ? 13 : 2;
+  const padding = angle < -40 && angle > -150 ? 13 : 3;
   if (distance > parentR - childR - padding) {
     const diff = getPositionFromAngleAndDistance(angle, parentR - childR - padding);
     return [
@@ -14630,8 +14630,8 @@ var Tree = ({ data, filesChanged = [] }) => {
         return !((_a = d2.children) == null ? void 0 : _a.length);
       }).length > 1;
       if (hasChildWithNoChildren)
-        return 4;
-      return 9;
+        return 5;
+      return 11;
     })(hierarchicalData);
     packedTree.children = reflowSiblings(packedTree.children, cachedPositions.current);
     const children2 = packedTree.descendants();
@@ -14965,7 +14965,7 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
       originalY: d.y
     };
   })];
-  const paddingScale = linear2().domain([10, 1]).range([3, 10]).clamp(true);
+  const paddingScale = linear2().domain([4, 1]).range([2, 10]).clamp(true);
   let simulation = simulation_default(items).force("centerX", x_default2(width / 2).strength(items[0].depth <= 2 ? 0.01 : 0)).force("centerY", y_default2(height / 2).strength(items[0].depth <= 2 ? 0.05 : 0)).force("centerX2", x_default2(parentPosition == null ? void 0 : parentPosition[0]).strength(parentPosition ? 0.5 : 0)).force("centerY2", y_default2(parentPosition == null ? void 0 : parentPosition[1]).strength(parentPosition ? 0.5 : 0)).force("x", x_default2((d) => {
     var _a;
     return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) || width / 2;
@@ -14978,8 +14978,8 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
   }).strength((d) => {
     var _a;
     return ((_a = cachedPositions[d.data.path]) == null ? void 0 : _a[0]) ? 0.5 : 0.1;
-  })).force("collide", collide_default((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 3).iterations(9).strength(1)).stop();
-  for (let i = 0; i < 190; i++) {
+  })).force("collide", collide_default((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 2).iterations(9).strength(1)).stop();
+  for (let i = 0; i < 290; i++) {
     simulation.tick();
     items.forEach((d) => {
       d.x = keepBetween(d.r, d.x, width - d.r);
