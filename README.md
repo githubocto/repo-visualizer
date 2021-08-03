@@ -2,6 +2,8 @@
 
 A GitHub Action that creates an SVG diagram of your repo. Read more [in the writeup](https://octo.github.com/projects/repo-visualization).
 
+**Please note that this is an experiment. If you have feature requests, please submit a PR or fork and use the code any way you need.**
+
 For a full demo, check out the [githubocto/repo-visualizer](https://github.com/githubocto/repo-visualizer) repository.
 
 ## Inputs
