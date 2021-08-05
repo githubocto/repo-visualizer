@@ -16,8 +16,7 @@ const main = async () => {
   await exec('git', [
     'config',
     'user.email',
-    // `${username}@users.noreply.github.com`,
-    "wattenberger@github.com"
+    `${username}@users.noreply.github.com`,
   ])
 
   core.endGroup()

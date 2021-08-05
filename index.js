@@ -15084,7 +15084,7 @@ var main = async () => {
   await (0, import_exec.exec)("git", [
     "config",
     "user.email",
-    "wattenberger@github.com"
+    `${username}@users.noreply.github.com`
   ]);
   core.endGroup();
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
