@@ -11,14 +11,6 @@ const main = async () => {
   core.info('[INFO] Usage https://github.com/githubocto/repo-visualizer#readme')
 
   core.startGroup('Configuration')
-  const username = 'repo-visualizer'
-  await exec('git', ['config', 'user.name', username])
-  await exec('git', [
-    'config',
-    'user.email',
-    // `${username}@users.noreply.github.com`,
-    "wattenberger@github.com"
-  ])
 
   core.endGroup()
 
