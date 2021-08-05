@@ -15102,7 +15102,7 @@ var main = async () => {
     core.info("[INFO] No changes to the repo detected, exiting");
     return;
   }
-  (0, import_exec.exec)("git", ["commit", "-m", "Repo visualizer: updated diagram"]);
+  await (0, import_exec.exec)("git", ["commit", "-m", "Repo visualizer: updated diagram"]);
   await (0, import_exec.exec)("git", ["push"]);
   console.log("All set!");
 };
