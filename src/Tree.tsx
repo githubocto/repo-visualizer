@@ -66,6 +66,7 @@ const fileColors = {
   py: "#5758BB",
   mp4: "#788BA3",
   webm: "#4B6584",
+  vue: "#42b883",
 };
 const colorThemes = ["file", "changes", "last-change"];
 const colorTheme = "file";
