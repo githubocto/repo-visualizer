@@ -1,13 +1,16 @@
 import React, { useMemo, useRef, useState } from "react";
 import {
+  extent,
   forceCollide,
   forceSimulation,
   forceX,
   forceY,
   hierarchy,
   pack,
+  range,
   scaleLinear,
-  timeDay,
+  scaleSqrt,
+  timeFormat,
 } from "d3";
 import { FileType } from "./types";
 import countBy from "lodash/countBy";
@@ -27,6 +30,8 @@ import {
 type Props = {
   data: FileType;
   filesChanged: string[];
+  maxDepth: number;
+  colorEncoding: "type" | "number-of-changes" | "last-change"
 };
 type ExtendedFileType = {
   extension?: string;
@@ -46,18 +51,63 @@ type ProcessedDataItem = {
   parent: ProcessedDataItem | null;
   children: Array<ProcessedDataItem>;
 };
-const colorThemes = ["file", "changes", "last-change"];
-const colorTheme = "file";
 const looseFilesId = "__structure_loose_file__";
 const width = 1000;
 const height = 1000;
-export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
+const maxChildren = 9000;
+const lastCommitAccessor = (d) => new Date(d.commits?.[0]?.date + "0");
+const numberOfCommitsAccessor = (d) => d?.commits?.length || 0;
+export const Tree = (
+  { data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }:
+    Props,
+) => {
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const cachedPositions = useRef<{ [key: string]: [number, number] }>({});
   const cachedOrders = useRef<{ [key: string]: string[] }>({});
 
+  const { colorScale, colorExtent } = useMemo(() => {
+    if (!data) return { colorScale: () => { }, colorExtent: [0, 0] };
+    const flattenTree = (d) => {
+      return d.children ? flatten(d.children.map(flattenTree)) : d;
+    };
+    const items = flattenTree(data);
+    // @ts-ignore
+    const flatTree = colorEncoding === "last-change"
+      ? items.map(lastCommitAccessor).sort((a, b) => b - a).slice(0, -8)
+      : items.map(numberOfCommitsAccessor).sort((a, b) => b - a).slice(2, -2);
+    const colorExtent = extent(flatTree);
+
+    // const valueScale = scaleLog()
+    //   .domain(colorExtent)
+    //   .range([0, 1])
+    //   .clamp(true);
+    // const colorScale = scaleSequential((d) => interpolateBuPu(valueScale(d)));
+    const colors = [
+      "#f4f4f4",
+      "#f4f4f4",
+      "#f4f4f4",
+      "#f4f4f4",
+      "#f4f4f4",
+      "#f4f4f4",
+      "#f4f4f4",
+      // @ts-ignore
+      colorEncoding === "last-change" ? "#C7ECEE" : "#FEEAA7",
+      // @ts-ignore
+      colorEncoding === "last-change" ? "#3C40C6" : "#823471",
+    ];
+    const colorScale = scaleLinear()
+      .domain(
+        range(0, colors.length).map((i) => (
+          +colorExtent[0] +
+          (colorExtent[1] - colorExtent[0]) * i / (colors.length - 1)
+        )),
+      )
+      .range(colors).clamp(true);
+    return { colorScale, colorExtent };
+  }, [data]);
+
   const getColor = (d) => {
-    if (colorTheme === "file") {
+    if (colorEncoding === "type") {
       const isParent = d.children;
       if (isParent) {
         const extensions = countBy(d.children, (c) => c.extension);
@@ -65,22 +115,15 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
         return fileColors[mainExtension] || "#CED6E0";
       }
       return fileColors[d.extension] || "#CED6E0";
-    } else if (colorTheme === "changes") {
-      const scale = scaleLinear()
-        .domain([0, 50])
-        .range(["#f4f4f4", "#0fb9b1"]).clamp(true);
-      const numberOfChanges = d?.commits?.length;
-      return scale(numberOfChanges);
-    } else if (colorTheme === "last-change") {
-      const scale = scaleLinear()
-        .domain([timeDay.offset(new Date(), -100), new Date()])
-        .range(["#f4f4f4", "#0fb9b1"]).clamp(true);
-      const lastChangeDate = new Date(d?.commits?.[0]?.date);
-      return scale(lastChangeDate) || "#fff";
+    } else if (colorEncoding === "number-of-changes") {
+      return colorScale(numberOfCommitsAccessor(d)) || "#f4f4f4";
+    } else if (colorEncoding === "last-change") {
+      return colorScale(lastCommitAccessor(d)) || "#f4f4f4";
     }
   };
 
   const packedData = useMemo(() => {
+    if (!data) return [];
     const hierarchicalData = hierarchy(
       processChild(data, getColor, cachedOrders.current),
     ).sum((d) => d.value)
@@ -106,7 +149,7 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
           !d.children?.length
         ).length > 1;
         if (hasChildWithNoChildren) return 5;
-        return 11;
+        return 13;
         // const hasChildren = !!d.children?.find((d) => d?.children?.length);
         // return hasChildren ? 60 : 8;
         // return [60, 20, 12][d.depth] || 5;
@@ -114,6 +157,7 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
     packedTree.children = reflowSiblings(
       packedTree.children,
       cachedPositions.current,
+      maxDepth,
     );
     const children = packedTree.descendants() as ProcessedDataItem[];
 
@@ -130,7 +174,7 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
       cachedPositions.current[d.data.path] = [d.x, d.y];
     });
 
-    return children;
+    return children.slice(0, maxChildren);
   }, [data]);
 
   const selectedNode = selectedNodeId &&
@@ -140,72 +184,6 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
     packedData.map((d) => fileColors[d.data.extension] && d.data.extension),
   ).sort().filter(Boolean);
 
-  const imports = flatten(
-    packedData.map(({ x, y, r, depth, children, data }) => (
-      data?.imports?.map((im) => {
-        if (depth <= 0) return null;
-        if (depth > maxDepth) return null;
-        const isParent = !!children && depth !== maxDepth;
-        if (isParent) return;
-        if (data.path === looseFilesId) return null;
-        if (!im.moduleName) return;
-        const isExternal = im.moduleName.startsWith("lib/");
-        const originNode = isExternal
-          ? null
-          : packedData.find((d) =>
-            (d.data.pathWithoutExtension === im.moduleName ||
-              d.data.path === im.moduleName) && !d?.children
-          );
-        if (!originNode) return;
-        let start = [originNode.x - x, originNode.y - y];
-        // const angle = getAngleFromPosition(...start);
-        // const end = [0, 0];
-        const end = Math.abs(start[0]) < 5
-          ? [
-            0,
-            Math.min(Math.abs(start[1]), r) * (start[1] > 0 ? 1 : -1),
-          ]
-          : [
-            // Math.min(Math.abs(start[1]), r) * (start[1] > 0 ? 1 : -1),
-            0,
-            Math.min(Math.abs(start[1]), r) * (start[1] > 0 ? 1 : -1),
-          ];
-        if (
-          ![data.path, originNode.data.path].find((d) =>
-            d === selectedNodeId || d.includes(selectedNodeId)
-          )
-        ) {
-          return;
-        }
-        if (!start[0]) {
-          start[1] += 100;
-        } else {
-          start[0] += Math.min(Math.abs(start[0]), originNode.r) *
-            (start[0] > 0 ? -1 : 1);
-        }
-        const d = [
-          "M",
-          start[0],
-          start[1],
-          "Q",
-          end[0],
-          start[1],
-          end[0],
-          end[1],
-        ].join(" ");
-        return {
-          x,
-          y,
-          r,
-          d,
-          path: data.path,
-          toPath: originNode.data.path,
-          color: data.color,
-        };
-      }).filter(Boolean)
-    )),
-  ).filter(Boolean);
-  // console.log(packedData)
 
   return (
     <svg
@@ -228,56 +206,42 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
         </filter>
       </defs>
 
-      {packedData.map(({ x, y, r, depth, data, children }) => {
+      {packedData.map(({ x, y, r, depth, data, children, ...d }) => {
         if (depth <= 0) return null;
         if (depth > maxDepth) return null;
-        const isParent = !!children && depth !== maxDepth;
+        const isOutOfDepth = depth >= maxDepth;
+        const isParent = !!children;
         let runningR = r;
         // if (depth <= 1 && !children) runningR *= 3;
         if (data.path === looseFilesId) return null;
         const isHighlighted = filesChanged.includes(data.path);
         const doHighlight = !!filesChanged.length;
-        const isInActiveImport = !!imports.find((i) =>
-          i.path === data.path || i.toPath === data.path
-        );
 
         return (
           <g
             key={data.path}
-            // className="transition-all duration-300"
             style={{
               fill: doHighlight
-                ? isHighlighted ? "#FCE68A" : "#29081916"
+                ? isHighlighted ? "#FCE68A" : "#ECEAEB"
                 : data.color,
               transition: `transform ${isHighlighted ? "0.5s" : "0s"
                 } ease-out, fill 0.1s ease-out`,
               // opacity: doHighlight && !isHighlighted ? 0.6 : 1,
             }}
             transform={`translate(${x}, ${y})`}
-            onMouseEnter={() => {
-              console.log(data);
-            }}
-            onMouseMove={() => {
-              setSelectedNodeId(data.path);
-            }}
-            onMouseLeave={() => {
-              setSelectedNodeId(null);
-            }}
           >
             {isParent
               ? (
-                <circle
-                  r={r}
-                  style={{ transition: "all 0.5s ease-out" }}
-                  stroke="#290819"
-                  opacity="0.2"
-                  strokeWidth="1"
-                  fill="none"
-                // className={`${
-                //   depth % 2 ? "text-gray-100" : "text-white"
-                // } fill-current`}
-                // // stroke="#37415122"
-                />
+                <>
+                  <circle
+                    r={r}
+                    style={{ transition: "all 0.5s ease-out" }}
+                    stroke="#290819"
+                    strokeOpacity="0.2"
+                    strokeWidth="1"
+                    fill="white"
+                  />
+                </>
               )
               : (
                 <circle
@@ -298,35 +262,77 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
         if (depth <= 0) return null;
         if (depth > maxDepth) return null;
         const isParent = !!children && depth !== maxDepth;
-        let runningR = r;
-        // if (depth <= 1 && !children) runningR *= 3;
+        if (!isParent) return null;
         if (data.path === looseFilesId) return null;
-        const isHighlighted = filesChanged.includes(data.path);
-        const doHighlight = !!filesChanged.length;
-        const isInActiveImport = !!imports.find((i) =>
-          i.path === data.path || i.toPath === data.path
+        if (r < 16 && selectedNodeId !== data.path) return null;
+        if (data.label.length > r * 0.5) return null;
+
+        const label = truncateString(
+          data.label,
+          r < 30 ? Math.floor(r / 2.7) + 3 : 100,
         );
-        if (isParent) return null
-        if (!(isHighlighted
-          || ((!doHighlight && !selectedNode) && r > 30)
-          || isInActiveImport)
-        ) return null
+
+        let offsetR = r + 12 - depth * 4;
+        const fontSize = 16 - depth;
 
         return (
           <g
             key={data.path}
-            // className="transition-all duration-300"
+            style={{ pointerEvents: "none", transition: "all 0.5s ease-out" }}
+            transform={`translate(${x}, ${y})`}
+          >
+            <CircleText
+              style={{ fontSize, transition: "all 0.5s ease-out" }}
+              r={Math.max(20, offsetR - 3)}
+              fill="#374151"
+              stroke="white"
+              strokeWidth="6"
+              rotate={depth * 1 - 0}
+              text={label}
+            />
+            <CircleText
+              style={{ fontSize, transition: "all 0.5s ease-out" }}
+              fill="#374151"
+              rotate={depth * 1 - 0}
+              r={Math.max(20, offsetR - 3)}
+              text={label}
+            />
+          </g>
+        );
+      })}
+
+      {packedData.map(({ x, y, r, depth, data, children }) => {
+        if (depth <= 0) return null;
+        if (depth > maxDepth) return null;
+        const isParent = !!children;
+        // if (depth <= 1 && !children) runningR *= 3;
+        if (data.path === looseFilesId) return null;
+        const isHighlighted = filesChanged.includes(data.path);
+        const doHighlight = !!filesChanged.length;
+        if (isParent && !isHighlighted) return null;
+        if (selectedNodeId === data.path && !isHighlighted) return null;
+        if (
+          !(isHighlighted ||
+            (!doHighlight && !selectedNode) && r > 22)
+        ) {
+          return null;
+        }
+
+        const label = isHighlighted
+          ? data.label
+          : truncateString(data.label, Math.floor(r / 4) + 3);
+
+        return (
+          <g
+            key={data.path}
             style={{
               fill: doHighlight
                 ? isHighlighted ? "#FCE68A" : "#29081916"
                 : data.color,
-              transition: `transform ${isHighlighted ? "0.5s" : "0s"
-                } ease-out, fill 0.1s ease-out`,
-              // opacity: doHighlight && !isHighlighted ? 0.6 : 1,
+              transition: `transform ${isHighlighted ? "0.5s" : "0s"} ease-out`,
             }}
             transform={`translate(${x}, ${y})`}
           >
-
             <text
               style={{
                 pointerEvents: "none",
@@ -342,7 +348,7 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
               strokeWidth="3"
               strokeLinejoin="round"
             >
-              {data.label}
+              {label}
             </text>
             <text
               style={{
@@ -355,7 +361,7 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
               textAnchor="middle"
               dominantBaseline="middle"
             >
-              {data.label}
+              {label}
             </text>
             <text
               style={{
@@ -370,115 +376,67 @@ export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
               textAnchor="middle"
               dominantBaseline="middle"
             >
-              {data.label}
+              {label}
             </text>
           </g>
         );
       })}
 
-      {imports.map(({ x, y, d, path, toPath, color }) => {
-        return (
-          <g
-            style={{
-              fill: color,
-              transition: "all 0.5s ease-out",
-            }}
-            transform={`translate(${x}, ${y})`}
-            key={[path, toPath].join("--")}
-          >
-            <g
-              style={{ cursor: "pointer", transition: "all 0.5s ease-out" }}
-            >
-              <path
-                d={d}
-                fill="none"
-                strokeWidth="3"
-                stroke="#1F2937"
-                style={{ opacity: 0.3, transition: "all 0.5s ease-out" }}
-              />
-              <path
-                d={d}
-                fill="none"
-                strokeWidth="3"
-                stroke="#1F2937"
-                style={{ opacity: 0.3, transition: "all 0.5s ease-out" }}
-                className="flowing"
-              />
-            </g>
-          </g>
-        );
-      })}
-      {packedData.map(({ x, y, r, depth, data, children }) => {
-        if (depth <= 0) return null;
-        if (depth > maxDepth) return null;
-        const isParent = !!children && depth !== maxDepth;
-        if (!isParent) return null;
-        if (data.path === looseFilesId) return null;
-        if (r < 10 && selectedNodeId !== data.path) return null;
-        return (
-          <g
-            key={data.path}
-            style={{ pointerEvents: "none", transition: "all 0.5s ease-out" }}
-            transform={`translate(${x}, ${y})`}
-          >
-            <CircleText
-              style={{ fontSize: "14px", transition: "all 0.5s ease-out" }}
-              r={Math.max(20, r - 3)}
-              fill="#374151"
-              stroke="white"
-              strokeWidth="6"
-              text={data.label}
-            />
-            <CircleText
-              style={{ fontSize: "14px", transition: "all 0.5s ease-out" }}
-              fill="#374151"
-              r={Math.max(20, r - 3)}
-              text={data.label}
-            />
-          </g>
-        );
-      })}
-
-      {!!selectedNode &&
-        (!selectedNode.children || selectedNode.depth === maxDepth) && (
-          <g transform={`translate(${selectedNode.x}, ${selectedNode.y})`}>
-            <text
-              style={{
-                pointerEvents: "none",
-                fontSize: "14px",
-                fontWeight: 500,
-                transition: "all 0.5s ease-out",
-              }}
-              stroke="white"
-              strokeWidth="3"
-              textAnchor="middle"
-              dominantBaseline="middle"
-            >
-              {selectedNode.data.label}
-            </text>
-            <text
-              style={{
-                pointerEvents: "none",
-                fontSize: "14px",
-                fontWeight: 500,
-                transition: "all 0.5s ease-out",
-              }}
-              textAnchor="middle"
-              dominantBaseline="middle"
-            >
-              {selectedNode.data.label}
-            </text>
-          </g>
-        )}
-      {!filesChanged.length && <Legend fileTypes={fileTypes} />}
+      {!filesChanged.length && colorEncoding === "type" &&
+        <Legend fileTypes={fileTypes} />}
+      {!filesChanged.length && colorEncoding !== "type" &&
+        <ColorLegend scale={colorScale} extent={colorExtent} colorEncoding={colorEncoding} />}
     </svg>
+  );
+};
+
+const formatD = (d) => (
+  typeof d === "number" ? d : timeFormat("%b %Y")(d)
+);
+const ColorLegend = ({ scale, extent, colorEncoding }) => {
+  if (!scale || !scale.ticks) return null;
+  const ticks = scale.ticks(10);
+  return (
+    <g
+      transform={`translate(${width - 60}, ${height - 90})`}
+    >
+      <text
+        x={50}
+        y="-5"
+        fontSize="10"
+        textAnchor="middle"
+      >
+        {/* @ts-ignore */}
+        {colorEncoding === "number-of-changes" ? "Number of changes" : "Last change date"}
+      </text>
+      <linearGradient id="gradient">
+        {ticks.map((tick, i) => {
+          const color = scale(tick);
+          return (
+            <stop offset={i / (ticks.length - 1)} stopColor={color} key={i} />
+          );
+        })}
+      </linearGradient>
+      <rect x="0" width="100" height="13" fill="url(#gradient)" />
+      {extent.map((d, i) => (
+        <text
+          key={i}
+          x={i ? 100 : 0}
+          y="23"
+          fontSize="10"
+          textAnchor={i ? "end" : "start"}
+        >
+          {formatD(d)}
+        </text>
+      ))}
+    </g>
   );
 };
 
 const Legend = ({ fileTypes = [] }) => {
   return (
     <g
-      transform={`translate(${width - 80}, ${height - fileTypes.length * 15 -
+      transform={`translate(${width - 60}, ${height - fileTypes.length * 15 -
         20})`}
     >
       {fileTypes.map((extension, i) => (
@@ -496,11 +454,16 @@ const Legend = ({ fileTypes = [] }) => {
           </text>
         </g>
       ))}
-      <div
-        className="w-20 whitespace-nowrap text-sm text-gray-500 font-light italic"
+      <g
+        fill="#9CA3AF"
+        style={{
+          fontWeight: 300,
+          fontStyle: "italic",
+          fontSize: 12,
+        }}
       >
         each dot sized by file size
-      </div>
+      </g>
     </g>
   );
 };
@@ -544,21 +507,27 @@ const processChild = (
     ...child,
     name,
     path,
-    label: truncateString(name, 13),
+    label: name,
     extension,
     pathWithoutExtension,
 
-    value:
-      (["woff", "woff2", "ttf", "png", "jpg", "svg"].includes(extension)
+    size:
+      (["woff", "woff2", "ttf", "otf", "png", "jpg", "svg"].includes(extension)
         ? 100
-        : // I'm sick of these fonts
-        Math.min(
+        : Math.min(
+          15000,
+          hasExtension ? child.size : Math.min(child.size, 9000),
+        )) + i, // stupid hack to stabilize circle order/position
+    value:
+      (["woff", "woff2", "ttf", "otf", "png", "jpg", "svg"].includes(extension)
+        ? 100
+        : Math.min(
           15000,
           hasExtension ? child.size : Math.min(child.size, 9000),
         )) + i, // stupid hack to stabilize circle order/position
     color: "#fff",
     children,
-  };
+  } as ExtendedFileType;
   extendedChild.color = getColor(extendedChild);
   extendedChild.sortOrder = getSortOrder(extendedChild, cachedOrders, i);
 
@@ -568,6 +537,7 @@ const processChild = (
 const reflowSiblings = (
   siblings: ProcessedDataItem[],
   cachedPositions: Record<string, [number, number]> = {},
+  maxDepth: number,
   parentRadius?: number,
   parentPosition?: [number, number],
 ) => {
@@ -581,7 +551,9 @@ const reflowSiblings = (
       originalY: d.y,
     };
   })];
-  const paddingScale = scaleLinear().domain([4, 1]).range([2, 10]).clamp(true);
+  const paddingScale = scaleSqrt().domain([maxDepth, 1]).range([3, 8]).clamp(
+    true,
+  );
   let simulation = forceSimulation(items)
     .force(
       "centerX",
@@ -589,40 +561,42 @@ const reflowSiblings = (
     )
     .force(
       "centerY",
-      forceY(height / 2).strength(items[0].depth <= 2 ? 0.05 : 0),
+      forceY(height / 2).strength(items[0].depth <= 2 ? 0.01 : 0),
     )
     .force(
       "centerX2",
-      forceX(parentPosition?.[0]).strength(parentPosition ? 0.5 : 0),
+      forceX(parentPosition?.[0]).strength(parentPosition ? 0.3 : 0),
     )
     .force(
       "centerY2",
-      forceY(parentPosition?.[1]).strength(parentPosition ? 0.5 : 0),
+      forceY(parentPosition?.[1]).strength(parentPosition ? 0.8 : 0),
     )
     .force(
       "x",
       forceX((d) => cachedPositions[d.data.path]?.[0] || width / 2).strength(
-        (d) => cachedPositions[d.data.path]?.[1] ? 0.5 : 0.2,
+        (d) =>
+          cachedPositions[d.data.path]?.[1] ? 0.5 : ((width / height) * 0.3),
       ),
     )
     .force(
       "y",
       forceY((d) => cachedPositions[d.data.path]?.[1] || height / 2).strength(
-        (d) => cachedPositions[d.data.path]?.[0] ? 0.5 : 0.1,
+        (d) =>
+          cachedPositions[d.data.path]?.[0] ? 0.5 : ((height / width) * 0.3),
       ),
     )
     .force(
       "collide",
-      forceCollide((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 2)
-        .iterations(9).strength(1),
+      forceCollide((d) => d.children ? d.r + paddingScale(d.depth) : d.r + 1.6)
+        .iterations(8).strength(1),
     )
     .stop();
 
-  for (let i = 0; i < 290; i++) {
+  for (let i = 0; i < 280; i++) {
     simulation.tick();
     items.forEach((d) => {
       d.x = keepBetween(d.r, d.x, width - d.r);
-      d.y = keepBetween(d.r + 30, d.y, height - d.r);
+      d.y = keepBetween(d.r, d.y, height - d.r);
 
       if (parentPosition && parentRadius) {
         // keep within radius
@@ -631,6 +605,7 @@ const reflowSiblings = (
           parentPosition,
           d.r,
           [d.x, d.y],
+          !!d.children?.length,
         );
         d.x = containedPosition[0];
         d.y = containedPosition[1];
@@ -672,7 +647,7 @@ const reflowSiblings = (
         )
       );
       if (item.children.length > 4) {
-        // if (item.depth > 5) return;
+        if (item.depth > maxDepth) return;
         item.children.forEach((child) => {
           // move cached positions with the parent
           const childCachedPosition =
@@ -693,6 +668,7 @@ const reflowSiblings = (
         item.children = reflowSiblings(
           item.children,
           repositionedCachedPositions,
+          maxDepth,
           item.r,
           [item.x, item.y],
         );
@@ -715,9 +691,4 @@ const getSortOrder = (item: ExtendedFileType, cachedOrders, i = 0) => {
   // if (item.depth <= 1) return -10;
   return item.value + -i;
   // return b.value - a.value;
-};
-
-const transformIn = {
-  visible: { transform: "scale(1)", transition: { duration: 0.5 } },
-  hidden: { transform: "scale(0)", transition: { duration: 0.5 } },
 };

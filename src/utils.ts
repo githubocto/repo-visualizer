@@ -31,6 +31,7 @@ export const keepCircleInsideCircle = (
   parentPosition: [number, number],
   childR: number,
   childPosition: [number, number],
+  isParent: boolean = false,
 ): [number, number] => {
   const distance = Math.sqrt(
     Math.pow(parentPosition[0] - childPosition[0], 2) +
@@ -41,7 +42,10 @@ export const keepCircleInsideCircle = (
     childPosition[1] - parentPosition[1],
   );
   // leave space for labels
-  const padding = angle < -40 && angle > -150 ? 13 : 3;
+  const padding = Math.min(
+    angle < -20 && angle > -100 && isParent ? 13 : 3,
+    parentR * 0.2,
+  );
   if (distance > (parentR - childR - padding)) {
     const diff = getPositionFromAngleAndDistance(
       angle,

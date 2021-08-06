@@ -11,6 +11,9 @@ inputs:
   max_depth:
     description: "The maximum number of nested folders to show files within. Default: 9"
     required: false
+  color_encoding:
+    description: "What metric to represent with color in the diagram. Options: 'type' | 'number-of-changes' | 'last-change'. Default: 'type'"
+    required: false
 runs:
   using: "node12"
   main: "index.js"
