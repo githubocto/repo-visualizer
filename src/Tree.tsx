@@ -66,6 +66,8 @@ const fileColors = {
   py: "#5758BB",
   mp4: "#788BA3",
   webm: "#4B6584",
+  fs: "#30B9DB",
+  fsx: "#378BBA",
 };
 const colorThemes = ["file", "changes", "last-change"];
 const colorTheme = "file";
