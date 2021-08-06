@@ -61,6 +61,7 @@ const fileColors = {
   jpg: "#3dc1d3",
   go: "#E67E23",
   rb: "#eb4d4b",
+  php: "#e28f56",
   sh: "#badc58",
   m: "#FFD428",
   py: "#5758BB",
