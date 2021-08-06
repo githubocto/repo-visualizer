@@ -51,8 +51,7 @@ const colorTheme = "file";
 const looseFilesId = "__structure_loose_file__";
 const width = 1000;
 const height = 1000;
-const maxDepth = 9;
-export const Tree = ({ data, filesChanged = [] }: Props) => {
+export const Tree = ({ data, filesChanged = [], maxDepth = 9 }: Props) => {
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const cachedPositions = useRef<{ [key: string]: [number, number] }>({});
   const cachedOrders = useRef<{ [key: string]: string[] }>({});

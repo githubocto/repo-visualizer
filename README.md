@@ -24,6 +24,12 @@ For example: dist,node_modules
 
 Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.vscode,package-lock.json,yarn.lock
 
+## `max_depth`
+
+The maximum number of nested folders to show files within. A higher number will take longer to render.
+
+Default: 5
+
 ## Example usage
 
 You'll need to run the `actions/checkout` Action beforehand, to check out the code.
@@ -34,6 +40,7 @@ You'll need to run the `actions/checkout` Action beforehand, to check out the co
 - name: Update diagram
   uses: githubocto/repo-visualizer@main
   with:
-    output_file: 'images/diagram.svg'
-    excluded_paths: 'dist,node_modules'
+    output_file: "images/diagram.svg"
+    excluded_paths: "dist,node_modules"
+    max_depth: 9
 ```
