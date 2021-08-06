@@ -86,10 +86,6 @@ export const Tree = (
       "#f4f4f4",
       "#f4f4f4",
       "#f4f4f4",
-      "#f4f4f4",
-      "#f4f4f4",
-      "#f4f4f4",
-      "#f4f4f4",
       // @ts-ignore
       colorEncoding === "last-change" ? "#C7ECEE" : "#FEEAA7",
       // @ts-ignore
@@ -398,7 +394,7 @@ const ColorLegend = ({ scale, extent, colorEncoding }) => {
   const ticks = scale.ticks(10);
   return (
     <g
-      transform={`translate(${width - 60}, ${height - 90})`}
+      transform={`translate(${width - 160}, ${height - 90})`}
     >
       <text
         x={50}

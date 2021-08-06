@@ -30,12 +30,6 @@ The maximum number of nested folders to show files within. A higher number will 
 
 Default: 5
 
-## `color_encoding`
-
-What metric to represent with color in the diagram. Options: "type" | "number-of-changes" | "last-change"
-
-Default: "type"
-
 ## Example usage
 
 You'll need to run the `actions/checkout` Action beforehand, to check out the code.

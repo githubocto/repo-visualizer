@@ -17477,10 +17477,6 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) =
       "#f4f4f4",
       "#f4f4f4",
       "#f4f4f4",
-      "#f4f4f4",
-      "#f4f4f4",
-      "#f4f4f4",
-      "#f4f4f4",
       colorEncoding === "last-change" ? "#C7ECEE" : "#FEEAA7",
       colorEncoding === "number-of-changes" ? "#3C40C6" : "#823471"
     ];
@@ -17709,7 +17705,7 @@ var ColorLegend = ({ scale, extent, colorEncoding }) => {
     return null;
   const ticks = scale.ticks(10);
   return /* @__PURE__ */ import_react2.default.createElement("g", {
-    transform: `translate(${width - 60}, ${height - 90})`
+    transform: `translate(${width - 160}, ${height - 90})`
   }, /* @__PURE__ */ import_react2.default.createElement("text", {
     x: 50,
     y: "-5",
