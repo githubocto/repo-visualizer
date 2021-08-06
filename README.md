@@ -28,7 +28,7 @@ Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn
 
 You'll need to run the `actions/checkout` Action beforehand, to check out the code.
 
-```
+```yaml
 - name: Checkout code
   uses: actions/checkout@master
 - name: Update diagram
