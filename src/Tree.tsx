@@ -15,6 +15,8 @@ import maxBy from "lodash/maxBy";
 import entries from "lodash/entries";
 import uniqBy from "lodash/uniqBy";
 import flatten from "lodash/flatten";
+// file colors are from the github/linguist repo
+import fileColors from "./language-colors.json";
 import { CircleText } from "./CircleText";
 import {
   keepBetween,
@@ -43,30 +45,6 @@ type ProcessedDataItem = {
   y: number;
   parent: ProcessedDataItem | null;
   children: Array<ProcessedDataItem>;
-};
-const fileColors = {
-  ts: "#29CBBA",
-  tsx: "#12B9B1",
-  js: "#CE83F1",
-  jsx: "#C56BF0",
-  md: "#6473F2",
-  json: "#FDA7DF",
-  csv: "#D980FA",
-  svg: "#FFC312",
-  css: "#C3E438",
-  svelte: "#B53471",
-  scss: "#9980FA",
-  html: "#C7ECEE",
-  png: "#45aaf2",
-  jpg: "#3dc1d3",
-  go: "#E67E23",
-  rb: "#eb4d4b",
-  php: "#e28f56",
-  sh: "#badc58",
-  m: "#FFD428",
-  py: "#5758BB",
-  mp4: "#788BA3",
-  webm: "#4B6584",
 };
 const colorThemes = ["file", "changes", "last-change"];
 const colorTheme = "file";
