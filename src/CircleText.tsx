@@ -5,6 +5,10 @@ interface CircleTextProps {
   r: number;
   rotate?: number;
   text: string;
+  style?: any;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: string;
 }
 export const CircleText = ({
   r = 10,

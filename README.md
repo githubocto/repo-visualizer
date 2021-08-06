@@ -42,5 +42,4 @@ You'll need to run the `actions/checkout` Action beforehand, to check out the co
   with:
     output_file: "images/diagram.svg"
     excluded_paths: "dist,node_modules"
-    max_depth: 9
 ```

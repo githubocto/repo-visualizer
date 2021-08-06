@@ -10271,6 +10271,43 @@ var bisectLeft = ascendingBisect.left;
 var bisectCenter = bisector_default(number_default).center;
 var bisect_default = bisectRight;
 
+// node_modules/d3-array/src/extent.js
+function extent_default(values, valueof) {
+  let min;
+  let max;
+  if (valueof === void 0) {
+    for (const value of values) {
+      if (value != null) {
+        if (min === void 0) {
+          if (value >= value)
+            min = max = value;
+        } else {
+          if (min > value)
+            min = value;
+          if (max < value)
+            max = value;
+        }
+      }
+    }
+  } else {
+    let index = -1;
+    for (let value of values) {
+      if ((value = valueof(value, ++index, values)) != null) {
+        if (min === void 0) {
+          if (value >= value)
+            min = max = value;
+        } else {
+          if (min > value)
+            min = value;
+          if (max < value)
+            max = value;
+        }
+      }
+    }
+  }
+  return [min, max];
+}
+
 // node_modules/d3-array/src/ticks.js
 var e10 = Math.sqrt(50);
 var e5 = Math.sqrt(10);
@@ -10321,6 +10358,16 @@ function tickStep(start2, stop, count2) {
   else if (error >= e2)
     step1 *= 2;
   return stop < start2 ? -step1 : step1;
+}
+
+// node_modules/d3-array/src/range.js
+function range_default(start2, stop, step) {
+  start2 = +start2, stop = +stop, step = (n2 = arguments.length) < 2 ? (stop = start2, start2 = 0, 1) : n2 < 3 ? 1 : +step;
+  var i = -1, n2 = Math.max(0, Math.ceil((stop - start2) / step)) | 0, range = new Array(n2);
+  while (++i < n2) {
+    range[i] = start2 + i * step;
+  }
+  return range;
 }
 
 // node_modules/d3-dispatch/src/dispatch.js
@@ -12904,7 +12951,7 @@ function data_default2() {
 }
 
 // node_modules/d3-quadtree/src/extent.js
-function extent_default(_10) {
+function extent_default2(_10) {
   return arguments.length ? this.cover(+_10[0][0], +_10[0][1]).cover(+_10[1][0], +_10[1][1]) : isNaN(this._x0) ? void 0 : [[this._x0, this._y0], [this._x1, this._y1]];
 }
 
@@ -13125,7 +13172,7 @@ treeProto.add = add_default;
 treeProto.addAll = addAll;
 treeProto.cover = cover_default;
 treeProto.data = data_default2;
-treeProto.extent = extent_default;
+treeProto.extent = extent_default2;
 treeProto.find = find_default;
 treeProto.remove = remove_default3;
 treeProto.removeAll = removeAll;
@@ -13565,8 +13612,8 @@ function identity_default(x2) {
 // node_modules/d3-format/src/locale.js
 var map = Array.prototype.map;
 var prefixes = ["y", "z", "a", "f", "p", "n", "\xB5", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y"];
-function locale_default(locale2) {
-  var group = locale2.grouping === void 0 || locale2.thousands === void 0 ? identity_default : formatGroup_default(map.call(locale2.grouping, Number), locale2.thousands + ""), currencyPrefix = locale2.currency === void 0 ? "" : locale2.currency[0] + "", currencySuffix = locale2.currency === void 0 ? "" : locale2.currency[1] + "", decimal = locale2.decimal === void 0 ? "." : locale2.decimal + "", numerals = locale2.numerals === void 0 ? identity_default : formatNumerals_default(map.call(locale2.numerals, String)), percent = locale2.percent === void 0 ? "%" : locale2.percent + "", minus = locale2.minus === void 0 ? "\u2212" : locale2.minus + "", nan = locale2.nan === void 0 ? "NaN" : locale2.nan + "";
+function locale_default(locale3) {
+  var group = locale3.grouping === void 0 || locale3.thousands === void 0 ? identity_default : formatGroup_default(map.call(locale3.grouping, Number), locale3.thousands + ""), currencyPrefix = locale3.currency === void 0 ? "" : locale3.currency[0] + "", currencySuffix = locale3.currency === void 0 ? "" : locale3.currency[1] + "", decimal = locale3.decimal === void 0 ? "." : locale3.decimal + "", numerals = locale3.numerals === void 0 ? identity_default : formatNumerals_default(map.call(locale3.numerals, String)), percent = locale3.percent === void 0 ? "%" : locale3.percent + "", minus = locale3.minus === void 0 ? "\u2212" : locale3.minus + "", nan = locale3.nan === void 0 ? "NaN" : locale3.nan + "";
   function newFormat(specifier) {
     specifier = formatSpecifier(specifier);
     var fill = specifier.fill, align = specifier.align, sign = specifier.sign, symbol = specifier.symbol, zero2 = specifier.zero, width2 = specifier.width, comma = specifier.comma, precision = specifier.precision, trim = specifier.trim, type2 = specifier.type;
@@ -14366,6 +14413,40 @@ function linear2() {
   return linearish(scale);
 }
 
+// node_modules/d3-scale/src/pow.js
+function transformPow(exponent) {
+  return function(x2) {
+    return x2 < 0 ? -Math.pow(-x2, exponent) : Math.pow(x2, exponent);
+  };
+}
+function transformSqrt(x2) {
+  return x2 < 0 ? -Math.sqrt(-x2) : Math.sqrt(x2);
+}
+function transformSquare(x2) {
+  return x2 < 0 ? -x2 * x2 : x2 * x2;
+}
+function powish(transform2) {
+  var scale = transform2(identity2, identity2), exponent = 1;
+  function rescale() {
+    return exponent === 1 ? transform2(identity2, identity2) : exponent === 0.5 ? transform2(transformSqrt, transformSquare) : transform2(transformPow(exponent), transformPow(1 / exponent));
+  }
+  scale.exponent = function(_10) {
+    return arguments.length ? (exponent = +_10, rescale()) : exponent;
+  };
+  return linearish(scale);
+}
+function pow() {
+  var scale = powish(transformer());
+  scale.copy = function() {
+    return copy(scale, pow()).exponent(scale.exponent());
+  };
+  initRange.apply(scale, arguments);
+  return scale;
+}
+function sqrt() {
+  return pow.apply(null, arguments).exponent(0.5);
+}
+
 // node_modules/d3-time/src/interval.js
 var t0 = new Date();
 var t1 = new Date();
@@ -14448,6 +14529,698 @@ var durationYear = durationDay * 365;
 var day = newInterval((date) => date.setHours(0, 0, 0, 0), (date, step) => date.setDate(date.getDate() + step), (start2, end) => (end - start2 - (end.getTimezoneOffset() - start2.getTimezoneOffset()) * durationMinute) / durationDay, (date) => date.getDate() - 1);
 var day_default = day;
 var days = day.range;
+
+// node_modules/d3-time/src/week.js
+function weekday(i) {
+  return newInterval(function(date) {
+    date.setDate(date.getDate() - (date.getDay() + 7 - i) % 7);
+    date.setHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setDate(date.getDate() + step * 7);
+  }, function(start2, end) {
+    return (end - start2 - (end.getTimezoneOffset() - start2.getTimezoneOffset()) * durationMinute) / durationWeek;
+  });
+}
+var sunday = weekday(0);
+var monday = weekday(1);
+var tuesday = weekday(2);
+var wednesday = weekday(3);
+var thursday = weekday(4);
+var friday = weekday(5);
+var saturday = weekday(6);
+var sundays = sunday.range;
+var mondays = monday.range;
+var tuesdays = tuesday.range;
+var wednesdays = wednesday.range;
+var thursdays = thursday.range;
+var fridays = friday.range;
+var saturdays = saturday.range;
+
+// node_modules/d3-time/src/year.js
+var year = newInterval(function(date) {
+  date.setMonth(0, 1);
+  date.setHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setFullYear(date.getFullYear() + step);
+}, function(start2, end) {
+  return end.getFullYear() - start2.getFullYear();
+}, function(date) {
+  return date.getFullYear();
+});
+year.every = function(k) {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+    date.setFullYear(Math.floor(date.getFullYear() / k) * k);
+    date.setMonth(0, 1);
+    date.setHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setFullYear(date.getFullYear() + step * k);
+  });
+};
+var year_default = year;
+var years = year.range;
+
+// node_modules/d3-time/src/utcDay.js
+var utcDay = newInterval(function(date) {
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCDate(date.getUTCDate() + step);
+}, function(start2, end) {
+  return (end - start2) / durationDay;
+}, function(date) {
+  return date.getUTCDate() - 1;
+});
+var utcDay_default = utcDay;
+var utcDays = utcDay.range;
+
+// node_modules/d3-time/src/utcWeek.js
+function utcWeekday(i) {
+  return newInterval(function(date) {
+    date.setUTCDate(date.getUTCDate() - (date.getUTCDay() + 7 - i) % 7);
+    date.setUTCHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setUTCDate(date.getUTCDate() + step * 7);
+  }, function(start2, end) {
+    return (end - start2) / durationWeek;
+  });
+}
+var utcSunday = utcWeekday(0);
+var utcMonday = utcWeekday(1);
+var utcTuesday = utcWeekday(2);
+var utcWednesday = utcWeekday(3);
+var utcThursday = utcWeekday(4);
+var utcFriday = utcWeekday(5);
+var utcSaturday = utcWeekday(6);
+var utcSundays = utcSunday.range;
+var utcMondays = utcMonday.range;
+var utcTuesdays = utcTuesday.range;
+var utcWednesdays = utcWednesday.range;
+var utcThursdays = utcThursday.range;
+var utcFridays = utcFriday.range;
+var utcSaturdays = utcSaturday.range;
+
+// node_modules/d3-time/src/utcYear.js
+var utcYear = newInterval(function(date) {
+  date.setUTCMonth(0, 1);
+  date.setUTCHours(0, 0, 0, 0);
+}, function(date, step) {
+  date.setUTCFullYear(date.getUTCFullYear() + step);
+}, function(start2, end) {
+  return end.getUTCFullYear() - start2.getUTCFullYear();
+}, function(date) {
+  return date.getUTCFullYear();
+});
+utcYear.every = function(k) {
+  return !isFinite(k = Math.floor(k)) || !(k > 0) ? null : newInterval(function(date) {
+    date.setUTCFullYear(Math.floor(date.getUTCFullYear() / k) * k);
+    date.setUTCMonth(0, 1);
+    date.setUTCHours(0, 0, 0, 0);
+  }, function(date, step) {
+    date.setUTCFullYear(date.getUTCFullYear() + step * k);
+  });
+};
+var utcYear_default = utcYear;
+var utcYears = utcYear.range;
+
+// node_modules/d3-time-format/src/locale.js
+function localDate(d2) {
+  if (0 <= d2.y && d2.y < 100) {
+    var date = new Date(-1, d2.m, d2.d, d2.H, d2.M, d2.S, d2.L);
+    date.setFullYear(d2.y);
+    return date;
+  }
+  return new Date(d2.y, d2.m, d2.d, d2.H, d2.M, d2.S, d2.L);
+}
+function utcDate(d2) {
+  if (0 <= d2.y && d2.y < 100) {
+    var date = new Date(Date.UTC(-1, d2.m, d2.d, d2.H, d2.M, d2.S, d2.L));
+    date.setUTCFullYear(d2.y);
+    return date;
+  }
+  return new Date(Date.UTC(d2.y, d2.m, d2.d, d2.H, d2.M, d2.S, d2.L));
+}
+function newDate(y3, m4, d2) {
+  return { y: y3, m: m4, d: d2, H: 0, M: 0, S: 0, L: 0 };
+}
+function formatLocale(locale3) {
+  var locale_dateTime = locale3.dateTime, locale_date = locale3.date, locale_time = locale3.time, locale_periods = locale3.periods, locale_weekdays = locale3.days, locale_shortWeekdays = locale3.shortDays, locale_months = locale3.months, locale_shortMonths = locale3.shortMonths;
+  var periodRe = formatRe(locale_periods), periodLookup = formatLookup(locale_periods), weekdayRe = formatRe(locale_weekdays), weekdayLookup = formatLookup(locale_weekdays), shortWeekdayRe = formatRe(locale_shortWeekdays), shortWeekdayLookup = formatLookup(locale_shortWeekdays), monthRe = formatRe(locale_months), monthLookup = formatLookup(locale_months), shortMonthRe = formatRe(locale_shortMonths), shortMonthLookup = formatLookup(locale_shortMonths);
+  var formats = {
+    "a": formatShortWeekday,
+    "A": formatWeekday,
+    "b": formatShortMonth,
+    "B": formatMonth,
+    "c": null,
+    "d": formatDayOfMonth,
+    "e": formatDayOfMonth,
+    "f": formatMicroseconds,
+    "g": formatYearISO,
+    "G": formatFullYearISO,
+    "H": formatHour24,
+    "I": formatHour12,
+    "j": formatDayOfYear,
+    "L": formatMilliseconds,
+    "m": formatMonthNumber,
+    "M": formatMinutes,
+    "p": formatPeriod,
+    "q": formatQuarter,
+    "Q": formatUnixTimestamp,
+    "s": formatUnixTimestampSeconds,
+    "S": formatSeconds,
+    "u": formatWeekdayNumberMonday,
+    "U": formatWeekNumberSunday,
+    "V": formatWeekNumberISO,
+    "w": formatWeekdayNumberSunday,
+    "W": formatWeekNumberMonday,
+    "x": null,
+    "X": null,
+    "y": formatYear,
+    "Y": formatFullYear,
+    "Z": formatZone,
+    "%": formatLiteralPercent
+  };
+  var utcFormats = {
+    "a": formatUTCShortWeekday,
+    "A": formatUTCWeekday,
+    "b": formatUTCShortMonth,
+    "B": formatUTCMonth,
+    "c": null,
+    "d": formatUTCDayOfMonth,
+    "e": formatUTCDayOfMonth,
+    "f": formatUTCMicroseconds,
+    "g": formatUTCYearISO,
+    "G": formatUTCFullYearISO,
+    "H": formatUTCHour24,
+    "I": formatUTCHour12,
+    "j": formatUTCDayOfYear,
+    "L": formatUTCMilliseconds,
+    "m": formatUTCMonthNumber,
+    "M": formatUTCMinutes,
+    "p": formatUTCPeriod,
+    "q": formatUTCQuarter,
+    "Q": formatUnixTimestamp,
+    "s": formatUnixTimestampSeconds,
+    "S": formatUTCSeconds,
+    "u": formatUTCWeekdayNumberMonday,
+    "U": formatUTCWeekNumberSunday,
+    "V": formatUTCWeekNumberISO,
+    "w": formatUTCWeekdayNumberSunday,
+    "W": formatUTCWeekNumberMonday,
+    "x": null,
+    "X": null,
+    "y": formatUTCYear,
+    "Y": formatUTCFullYear,
+    "Z": formatUTCZone,
+    "%": formatLiteralPercent
+  };
+  var parses = {
+    "a": parseShortWeekday,
+    "A": parseWeekday,
+    "b": parseShortMonth,
+    "B": parseMonth,
+    "c": parseLocaleDateTime,
+    "d": parseDayOfMonth,
+    "e": parseDayOfMonth,
+    "f": parseMicroseconds,
+    "g": parseYear,
+    "G": parseFullYear,
+    "H": parseHour24,
+    "I": parseHour24,
+    "j": parseDayOfYear,
+    "L": parseMilliseconds,
+    "m": parseMonthNumber,
+    "M": parseMinutes,
+    "p": parsePeriod,
+    "q": parseQuarter,
+    "Q": parseUnixTimestamp,
+    "s": parseUnixTimestampSeconds,
+    "S": parseSeconds,
+    "u": parseWeekdayNumberMonday,
+    "U": parseWeekNumberSunday,
+    "V": parseWeekNumberISO,
+    "w": parseWeekdayNumberSunday,
+    "W": parseWeekNumberMonday,
+    "x": parseLocaleDate,
+    "X": parseLocaleTime,
+    "y": parseYear,
+    "Y": parseFullYear,
+    "Z": parseZone,
+    "%": parseLiteralPercent
+  };
+  formats.x = newFormat(locale_date, formats);
+  formats.X = newFormat(locale_time, formats);
+  formats.c = newFormat(locale_dateTime, formats);
+  utcFormats.x = newFormat(locale_date, utcFormats);
+  utcFormats.X = newFormat(locale_time, utcFormats);
+  utcFormats.c = newFormat(locale_dateTime, utcFormats);
+  function newFormat(specifier, formats2) {
+    return function(date) {
+      var string = [], i = -1, j3 = 0, n2 = specifier.length, c3, pad2, format2;
+      if (!(date instanceof Date))
+        date = new Date(+date);
+      while (++i < n2) {
+        if (specifier.charCodeAt(i) === 37) {
+          string.push(specifier.slice(j3, i));
+          if ((pad2 = pads[c3 = specifier.charAt(++i)]) != null)
+            c3 = specifier.charAt(++i);
+          else
+            pad2 = c3 === "e" ? " " : "0";
+          if (format2 = formats2[c3])
+            c3 = format2(date, pad2);
+          string.push(c3);
+          j3 = i + 1;
+        }
+      }
+      string.push(specifier.slice(j3, i));
+      return string.join("");
+    };
+  }
+  function newParse(specifier, Z) {
+    return function(string) {
+      var d2 = newDate(1900, void 0, 1), i = parseSpecifier(d2, specifier, string += "", 0), week, day2;
+      if (i != string.length)
+        return null;
+      if ("Q" in d2)
+        return new Date(d2.Q);
+      if ("s" in d2)
+        return new Date(d2.s * 1e3 + ("L" in d2 ? d2.L : 0));
+      if (Z && !("Z" in d2))
+        d2.Z = 0;
+      if ("p" in d2)
+        d2.H = d2.H % 12 + d2.p * 12;
+      if (d2.m === void 0)
+        d2.m = "q" in d2 ? d2.q : 0;
+      if ("V" in d2) {
+        if (d2.V < 1 || d2.V > 53)
+          return null;
+        if (!("w" in d2))
+          d2.w = 1;
+        if ("Z" in d2) {
+          week = utcDate(newDate(d2.y, 0, 1)), day2 = week.getUTCDay();
+          week = day2 > 4 || day2 === 0 ? utcMonday.ceil(week) : utcMonday(week);
+          week = utcDay_default.offset(week, (d2.V - 1) * 7);
+          d2.y = week.getUTCFullYear();
+          d2.m = week.getUTCMonth();
+          d2.d = week.getUTCDate() + (d2.w + 6) % 7;
+        } else {
+          week = localDate(newDate(d2.y, 0, 1)), day2 = week.getDay();
+          week = day2 > 4 || day2 === 0 ? monday.ceil(week) : monday(week);
+          week = day_default.offset(week, (d2.V - 1) * 7);
+          d2.y = week.getFullYear();
+          d2.m = week.getMonth();
+          d2.d = week.getDate() + (d2.w + 6) % 7;
+        }
+      } else if ("W" in d2 || "U" in d2) {
+        if (!("w" in d2))
+          d2.w = "u" in d2 ? d2.u % 7 : "W" in d2 ? 1 : 0;
+        day2 = "Z" in d2 ? utcDate(newDate(d2.y, 0, 1)).getUTCDay() : localDate(newDate(d2.y, 0, 1)).getDay();
+        d2.m = 0;
+        d2.d = "W" in d2 ? (d2.w + 6) % 7 + d2.W * 7 - (day2 + 5) % 7 : d2.w + d2.U * 7 - (day2 + 6) % 7;
+      }
+      if ("Z" in d2) {
+        d2.H += d2.Z / 100 | 0;
+        d2.M += d2.Z % 100;
+        return utcDate(d2);
+      }
+      return localDate(d2);
+    };
+  }
+  function parseSpecifier(d2, specifier, string, j3) {
+    var i = 0, n2 = specifier.length, m4 = string.length, c3, parse;
+    while (i < n2) {
+      if (j3 >= m4)
+        return -1;
+      c3 = specifier.charCodeAt(i++);
+      if (c3 === 37) {
+        c3 = specifier.charAt(i++);
+        parse = parses[c3 in pads ? specifier.charAt(i++) : c3];
+        if (!parse || (j3 = parse(d2, string, j3)) < 0)
+          return -1;
+      } else if (c3 != string.charCodeAt(j3++)) {
+        return -1;
+      }
+    }
+    return j3;
+  }
+  function parsePeriod(d2, string, i) {
+    var n2 = periodRe.exec(string.slice(i));
+    return n2 ? (d2.p = periodLookup.get(n2[0].toLowerCase()), i + n2[0].length) : -1;
+  }
+  function parseShortWeekday(d2, string, i) {
+    var n2 = shortWeekdayRe.exec(string.slice(i));
+    return n2 ? (d2.w = shortWeekdayLookup.get(n2[0].toLowerCase()), i + n2[0].length) : -1;
+  }
+  function parseWeekday(d2, string, i) {
+    var n2 = weekdayRe.exec(string.slice(i));
+    return n2 ? (d2.w = weekdayLookup.get(n2[0].toLowerCase()), i + n2[0].length) : -1;
+  }
+  function parseShortMonth(d2, string, i) {
+    var n2 = shortMonthRe.exec(string.slice(i));
+    return n2 ? (d2.m = shortMonthLookup.get(n2[0].toLowerCase()), i + n2[0].length) : -1;
+  }
+  function parseMonth(d2, string, i) {
+    var n2 = monthRe.exec(string.slice(i));
+    return n2 ? (d2.m = monthLookup.get(n2[0].toLowerCase()), i + n2[0].length) : -1;
+  }
+  function parseLocaleDateTime(d2, string, i) {
+    return parseSpecifier(d2, locale_dateTime, string, i);
+  }
+  function parseLocaleDate(d2, string, i) {
+    return parseSpecifier(d2, locale_date, string, i);
+  }
+  function parseLocaleTime(d2, string, i) {
+    return parseSpecifier(d2, locale_time, string, i);
+  }
+  function formatShortWeekday(d2) {
+    return locale_shortWeekdays[d2.getDay()];
+  }
+  function formatWeekday(d2) {
+    return locale_weekdays[d2.getDay()];
+  }
+  function formatShortMonth(d2) {
+    return locale_shortMonths[d2.getMonth()];
+  }
+  function formatMonth(d2) {
+    return locale_months[d2.getMonth()];
+  }
+  function formatPeriod(d2) {
+    return locale_periods[+(d2.getHours() >= 12)];
+  }
+  function formatQuarter(d2) {
+    return 1 + ~~(d2.getMonth() / 3);
+  }
+  function formatUTCShortWeekday(d2) {
+    return locale_shortWeekdays[d2.getUTCDay()];
+  }
+  function formatUTCWeekday(d2) {
+    return locale_weekdays[d2.getUTCDay()];
+  }
+  function formatUTCShortMonth(d2) {
+    return locale_shortMonths[d2.getUTCMonth()];
+  }
+  function formatUTCMonth(d2) {
+    return locale_months[d2.getUTCMonth()];
+  }
+  function formatUTCPeriod(d2) {
+    return locale_periods[+(d2.getUTCHours() >= 12)];
+  }
+  function formatUTCQuarter(d2) {
+    return 1 + ~~(d2.getUTCMonth() / 3);
+  }
+  return {
+    format: function(specifier) {
+      var f2 = newFormat(specifier += "", formats);
+      f2.toString = function() {
+        return specifier;
+      };
+      return f2;
+    },
+    parse: function(specifier) {
+      var p2 = newParse(specifier += "", false);
+      p2.toString = function() {
+        return specifier;
+      };
+      return p2;
+    },
+    utcFormat: function(specifier) {
+      var f2 = newFormat(specifier += "", utcFormats);
+      f2.toString = function() {
+        return specifier;
+      };
+      return f2;
+    },
+    utcParse: function(specifier) {
+      var p2 = newParse(specifier += "", true);
+      p2.toString = function() {
+        return specifier;
+      };
+      return p2;
+    }
+  };
+}
+var pads = { "-": "", "_": " ", "0": "0" };
+var numberRe = /^\s*\d+/;
+var percentRe = /^%/;
+var requoteRe = /[\\^$*+?|[\]().{}]/g;
+function pad(value, fill, width2) {
+  var sign = value < 0 ? "-" : "", string = (sign ? -value : value) + "", length = string.length;
+  return sign + (length < width2 ? new Array(width2 - length + 1).join(fill) + string : string);
+}
+function requote(s) {
+  return s.replace(requoteRe, "\\$&");
+}
+function formatRe(names) {
+  return new RegExp("^(?:" + names.map(requote).join("|") + ")", "i");
+}
+function formatLookup(names) {
+  return new Map(names.map((name, i) => [name.toLowerCase(), i]));
+}
+function parseWeekdayNumberSunday(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 1));
+  return n2 ? (d2.w = +n2[0], i + n2[0].length) : -1;
+}
+function parseWeekdayNumberMonday(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 1));
+  return n2 ? (d2.u = +n2[0], i + n2[0].length) : -1;
+}
+function parseWeekNumberSunday(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.U = +n2[0], i + n2[0].length) : -1;
+}
+function parseWeekNumberISO(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.V = +n2[0], i + n2[0].length) : -1;
+}
+function parseWeekNumberMonday(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.W = +n2[0], i + n2[0].length) : -1;
+}
+function parseFullYear(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 4));
+  return n2 ? (d2.y = +n2[0], i + n2[0].length) : -1;
+}
+function parseYear(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.y = +n2[0] + (+n2[0] > 68 ? 1900 : 2e3), i + n2[0].length) : -1;
+}
+function parseZone(d2, string, i) {
+  var n2 = /^(Z)|([+-]\d\d)(?::?(\d\d))?/.exec(string.slice(i, i + 6));
+  return n2 ? (d2.Z = n2[1] ? 0 : -(n2[2] + (n2[3] || "00")), i + n2[0].length) : -1;
+}
+function parseQuarter(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 1));
+  return n2 ? (d2.q = n2[0] * 3 - 3, i + n2[0].length) : -1;
+}
+function parseMonthNumber(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.m = n2[0] - 1, i + n2[0].length) : -1;
+}
+function parseDayOfMonth(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.d = +n2[0], i + n2[0].length) : -1;
+}
+function parseDayOfYear(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 3));
+  return n2 ? (d2.m = 0, d2.d = +n2[0], i + n2[0].length) : -1;
+}
+function parseHour24(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.H = +n2[0], i + n2[0].length) : -1;
+}
+function parseMinutes(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.M = +n2[0], i + n2[0].length) : -1;
+}
+function parseSeconds(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 2));
+  return n2 ? (d2.S = +n2[0], i + n2[0].length) : -1;
+}
+function parseMilliseconds(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 3));
+  return n2 ? (d2.L = +n2[0], i + n2[0].length) : -1;
+}
+function parseMicroseconds(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i, i + 6));
+  return n2 ? (d2.L = Math.floor(n2[0] / 1e3), i + n2[0].length) : -1;
+}
+function parseLiteralPercent(d2, string, i) {
+  var n2 = percentRe.exec(string.slice(i, i + 1));
+  return n2 ? i + n2[0].length : -1;
+}
+function parseUnixTimestamp(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i));
+  return n2 ? (d2.Q = +n2[0], i + n2[0].length) : -1;
+}
+function parseUnixTimestampSeconds(d2, string, i) {
+  var n2 = numberRe.exec(string.slice(i));
+  return n2 ? (d2.s = +n2[0], i + n2[0].length) : -1;
+}
+function formatDayOfMonth(d2, p2) {
+  return pad(d2.getDate(), p2, 2);
+}
+function formatHour24(d2, p2) {
+  return pad(d2.getHours(), p2, 2);
+}
+function formatHour12(d2, p2) {
+  return pad(d2.getHours() % 12 || 12, p2, 2);
+}
+function formatDayOfYear(d2, p2) {
+  return pad(1 + day_default.count(year_default(d2), d2), p2, 3);
+}
+function formatMilliseconds(d2, p2) {
+  return pad(d2.getMilliseconds(), p2, 3);
+}
+function formatMicroseconds(d2, p2) {
+  return formatMilliseconds(d2, p2) + "000";
+}
+function formatMonthNumber(d2, p2) {
+  return pad(d2.getMonth() + 1, p2, 2);
+}
+function formatMinutes(d2, p2) {
+  return pad(d2.getMinutes(), p2, 2);
+}
+function formatSeconds(d2, p2) {
+  return pad(d2.getSeconds(), p2, 2);
+}
+function formatWeekdayNumberMonday(d2) {
+  var day2 = d2.getDay();
+  return day2 === 0 ? 7 : day2;
+}
+function formatWeekNumberSunday(d2, p2) {
+  return pad(sunday.count(year_default(d2) - 1, d2), p2, 2);
+}
+function dISO(d2) {
+  var day2 = d2.getDay();
+  return day2 >= 4 || day2 === 0 ? thursday(d2) : thursday.ceil(d2);
+}
+function formatWeekNumberISO(d2, p2) {
+  d2 = dISO(d2);
+  return pad(thursday.count(year_default(d2), d2) + (year_default(d2).getDay() === 4), p2, 2);
+}
+function formatWeekdayNumberSunday(d2) {
+  return d2.getDay();
+}
+function formatWeekNumberMonday(d2, p2) {
+  return pad(monday.count(year_default(d2) - 1, d2), p2, 2);
+}
+function formatYear(d2, p2) {
+  return pad(d2.getFullYear() % 100, p2, 2);
+}
+function formatYearISO(d2, p2) {
+  d2 = dISO(d2);
+  return pad(d2.getFullYear() % 100, p2, 2);
+}
+function formatFullYear(d2, p2) {
+  return pad(d2.getFullYear() % 1e4, p2, 4);
+}
+function formatFullYearISO(d2, p2) {
+  var day2 = d2.getDay();
+  d2 = day2 >= 4 || day2 === 0 ? thursday(d2) : thursday.ceil(d2);
+  return pad(d2.getFullYear() % 1e4, p2, 4);
+}
+function formatZone(d2) {
+  var z = d2.getTimezoneOffset();
+  return (z > 0 ? "-" : (z *= -1, "+")) + pad(z / 60 | 0, "0", 2) + pad(z % 60, "0", 2);
+}
+function formatUTCDayOfMonth(d2, p2) {
+  return pad(d2.getUTCDate(), p2, 2);
+}
+function formatUTCHour24(d2, p2) {
+  return pad(d2.getUTCHours(), p2, 2);
+}
+function formatUTCHour12(d2, p2) {
+  return pad(d2.getUTCHours() % 12 || 12, p2, 2);
+}
+function formatUTCDayOfYear(d2, p2) {
+  return pad(1 + utcDay_default.count(utcYear_default(d2), d2), p2, 3);
+}
+function formatUTCMilliseconds(d2, p2) {
+  return pad(d2.getUTCMilliseconds(), p2, 3);
+}
+function formatUTCMicroseconds(d2, p2) {
+  return formatUTCMilliseconds(d2, p2) + "000";
+}
+function formatUTCMonthNumber(d2, p2) {
+  return pad(d2.getUTCMonth() + 1, p2, 2);
+}
+function formatUTCMinutes(d2, p2) {
+  return pad(d2.getUTCMinutes(), p2, 2);
+}
+function formatUTCSeconds(d2, p2) {
+  return pad(d2.getUTCSeconds(), p2, 2);
+}
+function formatUTCWeekdayNumberMonday(d2) {
+  var dow = d2.getUTCDay();
+  return dow === 0 ? 7 : dow;
+}
+function formatUTCWeekNumberSunday(d2, p2) {
+  return pad(utcSunday.count(utcYear_default(d2) - 1, d2), p2, 2);
+}
+function UTCdISO(d2) {
+  var day2 = d2.getUTCDay();
+  return day2 >= 4 || day2 === 0 ? utcThursday(d2) : utcThursday.ceil(d2);
+}
+function formatUTCWeekNumberISO(d2, p2) {
+  d2 = UTCdISO(d2);
+  return pad(utcThursday.count(utcYear_default(d2), d2) + (utcYear_default(d2).getUTCDay() === 4), p2, 2);
+}
+function formatUTCWeekdayNumberSunday(d2) {
+  return d2.getUTCDay();
+}
+function formatUTCWeekNumberMonday(d2, p2) {
+  return pad(utcMonday.count(utcYear_default(d2) - 1, d2), p2, 2);
+}
+function formatUTCYear(d2, p2) {
+  return pad(d2.getUTCFullYear() % 100, p2, 2);
+}
+function formatUTCYearISO(d2, p2) {
+  d2 = UTCdISO(d2);
+  return pad(d2.getUTCFullYear() % 100, p2, 2);
+}
+function formatUTCFullYear(d2, p2) {
+  return pad(d2.getUTCFullYear() % 1e4, p2, 4);
+}
+function formatUTCFullYearISO(d2, p2) {
+  var day2 = d2.getUTCDay();
+  d2 = day2 >= 4 || day2 === 0 ? utcThursday(d2) : utcThursday.ceil(d2);
+  return pad(d2.getUTCFullYear() % 1e4, p2, 4);
+}
+function formatUTCZone() {
+  return "+0000";
+}
+function formatLiteralPercent() {
+  return "%";
+}
+function formatUnixTimestamp(d2) {
+  return +d2;
+}
+function formatUnixTimestampSeconds(d2) {
+  return Math.floor(+d2 / 1e3);
+}
+
+// node_modules/d3-time-format/src/defaultLocale.js
+var locale2;
+var timeFormat;
+var timeParse;
+var utcFormat;
+var utcParse;
+defaultLocale2({
+  dateTime: "%x, %X",
+  date: "%-m/%-d/%Y",
+  time: "%-I:%M:%S %p",
+  periods: ["AM", "PM"],
+  days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  shortDays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  shortMonths: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+});
+function defaultLocale2(definition) {
+  locale2 = formatLocale(definition);
+  timeFormat = locale2.format;
+  timeParse = locale2.parse;
+  utcFormat = locale2.utcFormat;
+  utcParse = locale2.utcParse;
+  return locale2;
+}
 
 // node_modules/d3-zoom/src/transform.js
 function Transform(k, x2, y3) {
@@ -16659,10 +17432,10 @@ var getPositionFromAngleAndDistance = (angle, distance) => {
 var getAngleFromPosition = (x2, y3) => {
   return Math.atan2(y3, x2) * 180 / Math.PI;
 };
-var keepCircleInsideCircle = (parentR, parentPosition, childR, childPosition) => {
+var keepCircleInsideCircle = (parentR, parentPosition, childR, childPosition, isParent = false) => {
   const distance = Math.sqrt(Math.pow(parentPosition[0] - childPosition[0], 2) + Math.pow(parentPosition[1] - childPosition[1], 2));
   const angle = getAngleFromPosition(childPosition[0] - parentPosition[0], childPosition[1] - parentPosition[1]);
-  const padding = angle < -40 && angle > -150 ? 13 : 3;
+  const padding = Math.min(angle < -20 && angle > -100 && isParent ? 13 : 3, parentR * 0.2);
   if (distance > parentR - childR - padding) {
     const diff = getPositionFromAngleAndDistance(angle, parentR - childR - padding);
     return [
@@ -16674,17 +17447,45 @@ var keepCircleInsideCircle = (parentR, parentPosition, childR, childPosition) =>
 };
 
 // src/Tree.tsx
-var colorTheme = "file";
 var looseFilesId = "__structure_loose_file__";
 var width = 1e3;
 var height = 1e3;
-var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
+var maxChildren = 9e3;
+var lastCommitAccessor = (d2) => {
+  var _a, _b;
+  return new Date(((_b = (_a = d2.commits) == null ? void 0 : _a[0]) == null ? void 0 : _b.date) + "0");
+};
+var numberOfCommitsAccessor = (d2) => {
+  var _a;
+  return ((_a = d2 == null ? void 0 : d2.commits) == null ? void 0 : _a.length) || 0;
+};
+var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) => {
   const [selectedNodeId, setSelectedNodeId] = (0, import_react2.useState)(null);
   const cachedPositions = (0, import_react2.useRef)({});
   const cachedOrders = (0, import_react2.useRef)({});
+  const { colorScale, colorExtent } = (0, import_react2.useMemo)(() => {
+    if (!data)
+      return { colorScale: () => {
+      }, colorExtent: [0, 0] };
+    const flattenTree = (d2) => {
+      return d2.children ? (0, import_flatten.default)(d2.children.map(flattenTree)) : d2;
+    };
+    const items = flattenTree(data);
+    const flatTree = colorEncoding === "last-change" ? items.map(lastCommitAccessor).sort((a2, b) => b - a2).slice(0, -8) : items.map(numberOfCommitsAccessor).sort((a2, b) => b - a2).slice(2, -2);
+    const colorExtent2 = extent_default(flatTree);
+    const colors = [
+      "#f4f4f4",
+      "#f4f4f4",
+      "#f4f4f4",
+      colorEncoding === "last-change" ? "#C7ECEE" : "#FEEAA7",
+      colorEncoding === "number-of-changes" ? "#3C40C6" : "#823471"
+    ];
+    const colorScale2 = linear2().domain(range_default(0, colors.length).map((i) => +colorExtent2[0] + (colorExtent2[1] - colorExtent2[0]) * i / (colors.length - 1))).range(colors).clamp(true);
+    return { colorScale: colorScale2, colorExtent: colorExtent2 };
+  }, [data]);
   const getColor = (d2) => {
-    var _a, _b, _c, _d;
-    if (colorTheme === "file") {
+    var _a;
+    if (colorEncoding === "type") {
       const isParent = d2.children;
       if (isParent) {
         const extensions = (0, import_countBy.default)(d2.children, (c3) => c3.extension);
@@ -16692,17 +17493,15 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
         return language_colors_default[mainExtension] || "#CED6E0";
       }
       return language_colors_default[d2.extension] || "#CED6E0";
-    } else if (colorTheme === "changes") {
-      const scale = linear2().domain([0, 50]).range(["#f4f4f4", "#0fb9b1"]).clamp(true);
-      const numberOfChanges = (_b = d2 == null ? void 0 : d2.commits) == null ? void 0 : _b.length;
-      return scale(numberOfChanges);
-    } else if (colorTheme === "last-change") {
-      const scale = linear2().domain([day_default.offset(new Date(), -100), new Date()]).range(["#f4f4f4", "#0fb9b1"]).clamp(true);
-      const lastChangeDate = new Date((_d = (_c = d2 == null ? void 0 : d2.commits) == null ? void 0 : _c[0]) == null ? void 0 : _d.date);
-      return scale(lastChangeDate) || "#fff";
+    } else if (colorEncoding === "number-of-changes") {
+      return colorScale(numberOfCommitsAccessor(d2)) || "#f4f4f4";
+    } else if (colorEncoding === "last-change") {
+      return colorScale(lastCommitAccessor(d2)) || "#f4f4f4";
     }
   };
   const packedData = (0, import_react2.useMemo)(() => {
+    if (!data)
+      return [];
     const hierarchicalData = hierarchy(processChild(data, getColor, cachedOrders.current)).sum((d2) => d2.value).sort((a2, b) => {
       if (b.data.path.startsWith("src/fonts")) {
       }
@@ -16717,9 +17516,9 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
       }).length > 1;
       if (hasChildWithNoChildren)
         return 5;
-      return 11;
+      return 13;
     })(hierarchicalData);
-    packedTree.children = reflowSiblings(packedTree.children, cachedPositions.current);
+    packedTree.children = reflowSiblings(packedTree.children, cachedPositions.current, maxDepth);
     const children2 = packedTree.descendants();
     cachedOrders.current = {};
     cachedPositions.current = {};
@@ -16733,65 +17532,10 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
     children2.forEach((d2) => {
       cachedPositions.current[d2.data.path] = [d2.x, d2.y];
     });
-    return children2;
+    return children2.slice(0, maxChildren);
   }, [data]);
   const selectedNode = selectedNodeId && packedData.find((d2) => d2.data.path === selectedNodeId);
   const fileTypes = (0, import_uniqBy.default)(packedData.map((d2) => language_colors_default[d2.data.extension] && d2.data.extension)).sort().filter(Boolean);
-  const imports = (0, import_flatten.default)(packedData.map(({ x: x2, y: y3, r: r4, depth, children: children2, data: data2 }) => {
-    var _a;
-    return (_a = data2 == null ? void 0 : data2.imports) == null ? void 0 : _a.map((im) => {
-      if (depth <= 0)
-        return null;
-      if (depth > maxDepth)
-        return null;
-      const isParent = !!children2 && depth !== maxDepth;
-      if (isParent)
-        return;
-      if (data2.path === looseFilesId)
-        return null;
-      if (!im.moduleName)
-        return;
-      const isExternal = im.moduleName.startsWith("lib/");
-      const originNode = isExternal ? null : packedData.find((d3) => (d3.data.pathWithoutExtension === im.moduleName || d3.data.path === im.moduleName) && !(d3 == null ? void 0 : d3.children));
-      if (!originNode)
-        return;
-      let start2 = [originNode.x - x2, originNode.y - y3];
-      const end = Math.abs(start2[0]) < 5 ? [
-        0,
-        Math.min(Math.abs(start2[1]), r4) * (start2[1] > 0 ? 1 : -1)
-      ] : [
-        0,
-        Math.min(Math.abs(start2[1]), r4) * (start2[1] > 0 ? 1 : -1)
-      ];
-      if (![data2.path, originNode.data.path].find((d3) => d3 === selectedNodeId || d3.includes(selectedNodeId))) {
-        return;
-      }
-      if (!start2[0]) {
-        start2[1] += 100;
-      } else {
-        start2[0] += Math.min(Math.abs(start2[0]), originNode.r) * (start2[0] > 0 ? -1 : 1);
-      }
-      const d2 = [
-        "M",
-        start2[0],
-        start2[1],
-        "Q",
-        end[0],
-        start2[1],
-        end[0],
-        end[1]
-      ].join(" ");
-      return {
-        x: x2,
-        y: y3,
-        r: r4,
-        d: d2,
-        path: data2.path,
-        toPath: originNode.data.path,
-        color: data2.color
-      };
-    }).filter(Boolean);
-  })).filter(Boolean);
   return /* @__PURE__ */ import_react2.default.createElement("svg", {
     width,
     height,
@@ -16814,42 +17558,33 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
     in: "coloredBlur"
   }), /* @__PURE__ */ import_react2.default.createElement("feMergeNode", {
     in: "SourceGraphic"
-  })))), packedData.map(({ x: x2, y: y3, r: r4, depth, data: data2, children: children2 }) => {
+  })))), packedData.map(({ x: x2, y: y3, r: r4, depth, data: data2, children: children2, ...d2 }) => {
     if (depth <= 0)
       return null;
     if (depth > maxDepth)
       return null;
-    const isParent = !!children2 && depth !== maxDepth;
+    const isOutOfDepth = depth >= maxDepth;
+    const isParent = !!children2;
     let runningR = r4;
     if (data2.path === looseFilesId)
       return null;
     const isHighlighted = filesChanged.includes(data2.path);
     const doHighlight = !!filesChanged.length;
-    const isInActiveImport = !!imports.find((i) => i.path === data2.path || i.toPath === data2.path);
     return /* @__PURE__ */ import_react2.default.createElement("g", {
       key: data2.path,
       style: {
-        fill: doHighlight ? isHighlighted ? "#FCE68A" : "#29081916" : data2.color,
+        fill: doHighlight ? isHighlighted ? "#FCE68A" : "#ECEAEB" : data2.color,
         transition: `transform ${isHighlighted ? "0.5s" : "0s"} ease-out, fill 0.1s ease-out`
       },
-      transform: `translate(${x2}, ${y3})`,
-      onMouseEnter: () => {
-        console.log(data2);
-      },
-      onMouseMove: () => {
-        setSelectedNodeId(data2.path);
-      },
-      onMouseLeave: () => {
-        setSelectedNodeId(null);
-      }
-    }, isParent ? /* @__PURE__ */ import_react2.default.createElement("circle", {
+      transform: `translate(${x2}, ${y3})`
+    }, isParent ? /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, null, /* @__PURE__ */ import_react2.default.createElement("circle", {
       r: r4,
       style: { transition: "all 0.5s ease-out" },
       stroke: "#290819",
-      opacity: "0.2",
+      strokeOpacity: "0.2",
       strokeWidth: "1",
-      fill: "none"
-    }) : /* @__PURE__ */ import_react2.default.createElement("circle", {
+      fill: "white"
+    })) : /* @__PURE__ */ import_react2.default.createElement("circle", {
       style: {
         filter: isHighlighted ? "url(#glow)" : void 0,
         transition: "all 0.5s ease-out"
@@ -16864,21 +17599,59 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
     if (depth > maxDepth)
       return null;
     const isParent = !!children2 && depth !== maxDepth;
-    let runningR = r4;
+    if (!isParent)
+      return null;
+    if (data2.path === looseFilesId)
+      return null;
+    if (r4 < 16 && selectedNodeId !== data2.path)
+      return null;
+    if (data2.label.length > r4 * 0.5)
+      return null;
+    const label = truncateString(data2.label, r4 < 30 ? Math.floor(r4 / 2.7) + 3 : 100);
+    let offsetR = r4 + 12 - depth * 4;
+    const fontSize = 16 - depth;
+    return /* @__PURE__ */ import_react2.default.createElement("g", {
+      key: data2.path,
+      style: { pointerEvents: "none", transition: "all 0.5s ease-out" },
+      transform: `translate(${x2}, ${y3})`
+    }, /* @__PURE__ */ import_react2.default.createElement(CircleText, {
+      style: { fontSize, transition: "all 0.5s ease-out" },
+      r: Math.max(20, offsetR - 3),
+      fill: "#374151",
+      stroke: "white",
+      strokeWidth: "6",
+      rotate: depth * 1 - 0,
+      text: label
+    }), /* @__PURE__ */ import_react2.default.createElement(CircleText, {
+      style: { fontSize, transition: "all 0.5s ease-out" },
+      fill: "#374151",
+      rotate: depth * 1 - 0,
+      r: Math.max(20, offsetR - 3),
+      text: label
+    }));
+  }), packedData.map(({ x: x2, y: y3, r: r4, depth, data: data2, children: children2 }) => {
+    if (depth <= 0)
+      return null;
+    if (depth > maxDepth)
+      return null;
+    const isParent = !!children2;
     if (data2.path === looseFilesId)
       return null;
     const isHighlighted = filesChanged.includes(data2.path);
     const doHighlight = !!filesChanged.length;
-    const isInActiveImport = !!imports.find((i) => i.path === data2.path || i.toPath === data2.path);
-    if (isParent)
+    if (isParent && !isHighlighted)
       return null;
-    if (!(isHighlighted || !doHighlight && !selectedNode && r4 > 30 || isInActiveImport))
+    if (selectedNodeId === data2.path && !isHighlighted)
       return null;
+    if (!(isHighlighted || !doHighlight && !selectedNode && r4 > 22)) {
+      return null;
+    }
+    const label = isHighlighted ? data2.label : truncateString(data2.label, Math.floor(r4 / 4) + 3);
     return /* @__PURE__ */ import_react2.default.createElement("g", {
       key: data2.path,
       style: {
         fill: doHighlight ? isHighlighted ? "#FCE68A" : "#29081916" : data2.color,
-        transition: `transform ${isHighlighted ? "0.5s" : "0s"} ease-out, fill 0.1s ease-out`
+        transition: `transform ${isHighlighted ? "0.5s" : "0s"} ease-out`
       },
       transform: `translate(${x2}, ${y3})`
     }, /* @__PURE__ */ import_react2.default.createElement("text", {
@@ -16895,7 +17668,7 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
       stroke: "white",
       strokeWidth: "3",
       strokeLinejoin: "round"
-    }, data2.label), /* @__PURE__ */ import_react2.default.createElement("text", {
+    }, label), /* @__PURE__ */ import_react2.default.createElement("text", {
       style: {
         pointerEvents: "none",
         opacity: 1,
@@ -16905,7 +17678,7 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
       },
       textAnchor: "middle",
       dominantBaseline: "middle"
-    }, data2.label), /* @__PURE__ */ import_react2.default.createElement("text", {
+    }, label), /* @__PURE__ */ import_react2.default.createElement("text", {
       style: {
         pointerEvents: "none",
         opacity: 0.9,
@@ -16917,89 +17690,52 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
       fill: "#110101",
       textAnchor: "middle",
       dominantBaseline: "middle"
-    }, data2.label));
-  }), imports.map(({ x: x2, y: y3, d: d2, path, toPath, color: color2 }) => {
-    return /* @__PURE__ */ import_react2.default.createElement("g", {
-      style: {
-        fill: color2,
-        transition: "all 0.5s ease-out"
-      },
-      transform: `translate(${x2}, ${y3})`,
-      key: [path, toPath].join("--")
-    }, /* @__PURE__ */ import_react2.default.createElement("g", {
-      style: { cursor: "pointer", transition: "all 0.5s ease-out" }
-    }, /* @__PURE__ */ import_react2.default.createElement("path", {
-      d: d2,
-      fill: "none",
-      strokeWidth: "3",
-      stroke: "#1F2937",
-      style: { opacity: 0.3, transition: "all 0.5s ease-out" }
-    }), /* @__PURE__ */ import_react2.default.createElement("path", {
-      d: d2,
-      fill: "none",
-      strokeWidth: "3",
-      stroke: "#1F2937",
-      style: { opacity: 0.3, transition: "all 0.5s ease-out" },
-      className: "flowing"
-    })));
-  }), packedData.map(({ x: x2, y: y3, r: r4, depth, data: data2, children: children2 }) => {
-    if (depth <= 0)
-      return null;
-    if (depth > maxDepth)
-      return null;
-    const isParent = !!children2 && depth !== maxDepth;
-    if (!isParent)
-      return null;
-    if (data2.path === looseFilesId)
-      return null;
-    if (r4 < 10 && selectedNodeId !== data2.path)
-      return null;
-    return /* @__PURE__ */ import_react2.default.createElement("g", {
-      key: data2.path,
-      style: { pointerEvents: "none", transition: "all 0.5s ease-out" },
-      transform: `translate(${x2}, ${y3})`
-    }, /* @__PURE__ */ import_react2.default.createElement(CircleText, {
-      style: { fontSize: "14px", transition: "all 0.5s ease-out" },
-      r: Math.max(20, r4 - 3),
-      fill: "#374151",
-      stroke: "white",
-      strokeWidth: "6",
-      text: data2.label
-    }), /* @__PURE__ */ import_react2.default.createElement(CircleText, {
-      style: { fontSize: "14px", transition: "all 0.5s ease-out" },
-      fill: "#374151",
-      r: Math.max(20, r4 - 3),
-      text: data2.label
-    }));
-  }), !!selectedNode && (!selectedNode.children || selectedNode.depth === maxDepth) && /* @__PURE__ */ import_react2.default.createElement("g", {
-    transform: `translate(${selectedNode.x}, ${selectedNode.y})`
-  }, /* @__PURE__ */ import_react2.default.createElement("text", {
-    style: {
-      pointerEvents: "none",
-      fontSize: "14px",
-      fontWeight: 500,
-      transition: "all 0.5s ease-out"
-    },
-    stroke: "white",
-    strokeWidth: "3",
-    textAnchor: "middle",
-    dominantBaseline: "middle"
-  }, selectedNode.data.label), /* @__PURE__ */ import_react2.default.createElement("text", {
-    style: {
-      pointerEvents: "none",
-      fontSize: "14px",
-      fontWeight: 500,
-      transition: "all 0.5s ease-out"
-    },
-    textAnchor: "middle",
-    dominantBaseline: "middle"
-  }, selectedNode.data.label)), !filesChanged.length && /* @__PURE__ */ import_react2.default.createElement(Legend, {
+    }, label));
+  }), !filesChanged.length && colorEncoding === "type" && /* @__PURE__ */ import_react2.default.createElement(Legend, {
     fileTypes
+  }), !filesChanged.length && colorEncoding !== "type" && /* @__PURE__ */ import_react2.default.createElement(ColorLegend, {
+    scale: colorScale,
+    extent: colorExtent,
+    colorEncoding
   }));
+};
+var formatD = (d2) => typeof d2 === "number" ? d2 : timeFormat("%b %Y")(d2);
+var ColorLegend = ({ scale, extent, colorEncoding }) => {
+  if (!scale || !scale.ticks)
+    return null;
+  const ticks = scale.ticks(10);
+  return /* @__PURE__ */ import_react2.default.createElement("g", {
+    transform: `translate(${width - 160}, ${height - 90})`
+  }, /* @__PURE__ */ import_react2.default.createElement("text", {
+    x: 50,
+    y: "-5",
+    fontSize: "10",
+    textAnchor: "middle"
+  }, colorEncoding === "number-of-changes" ? "Number of changes" : "Last change date"), /* @__PURE__ */ import_react2.default.createElement("linearGradient", {
+    id: "gradient"
+  }, ticks.map((tick, i) => {
+    const color2 = scale(tick);
+    return /* @__PURE__ */ import_react2.default.createElement("stop", {
+      offset: i / (ticks.length - 1),
+      stopColor: color2,
+      key: i
+    });
+  })), /* @__PURE__ */ import_react2.default.createElement("rect", {
+    x: "0",
+    width: "100",
+    height: "13",
+    fill: "url(#gradient)"
+  }), extent.map((d2, i) => /* @__PURE__ */ import_react2.default.createElement("text", {
+    key: i,
+    x: i ? 100 : 0,
+    y: "23",
+    fontSize: "10",
+    textAnchor: i ? "end" : "start"
+  }, formatD(d2))));
 };
 var Legend = ({ fileTypes = [] }) => {
   return /* @__PURE__ */ import_react2.default.createElement("g", {
-    transform: `translate(${width - 80}, ${height - fileTypes.length * 15 - 20})`
+    transform: `translate(${width - 60}, ${height - fileTypes.length * 15 - 20})`
   }, fileTypes.map((extension, i) => /* @__PURE__ */ import_react2.default.createElement("g", {
     key: i,
     transform: `translate(0, ${i * 15})`
@@ -17010,8 +17746,13 @@ var Legend = ({ fileTypes = [] }) => {
     x: "10",
     style: { fontSize: "14px", fontWeight: 300 },
     dominantBaseline: "middle"
-  }, ".", extension))), /* @__PURE__ */ import_react2.default.createElement("div", {
-    className: "w-20 whitespace-nowrap text-sm text-gray-500 font-light italic"
+  }, ".", extension))), /* @__PURE__ */ import_react2.default.createElement("g", {
+    fill: "#9CA3AF",
+    style: {
+      fontWeight: 300,
+      fontStyle: "italic",
+      fontSize: 12
+    }
   }, "each dot sized by file size"));
 };
 var processChild = (child, getColor, cachedOrders, i = 0) => {
@@ -17052,10 +17793,11 @@ var processChild = (child, getColor, cachedOrders, i = 0) => {
     ...child,
     name,
     path,
-    label: truncateString(name, 13),
+    label: name,
     extension,
     pathWithoutExtension,
-    value: (["woff", "woff2", "ttf", "png", "jpg", "svg"].includes(extension) ? 100 : Math.min(15e3, hasExtension ? child.size : Math.min(child.size, 9e3))) + i,
+    size: (["woff", "woff2", "ttf", "otf", "png", "jpg", "svg"].includes(extension) ? 100 : Math.min(15e3, hasExtension ? child.size : Math.min(child.size, 9e3))) + i,
+    value: (["woff", "woff2", "ttf", "otf", "png", "jpg", "svg"].includes(extension) ? 100 : Math.min(15e3, hasExtension ? child.size : Math.min(child.size, 9e3))) + i,
     color: "#fff",
     children: children2
   };
@@ -17063,7 +17805,7 @@ var processChild = (child, getColor, cachedOrders, i = 0) => {
   extendedChild.sortOrder = getSortOrder(extendedChild, cachedOrders, i);
   return extendedChild;
 };
-var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPosition) => {
+var reflowSiblings = (siblings, cachedPositions = {}, maxDepth, parentRadius, parentPosition) => {
   if (!siblings)
     return;
   let items = [...siblings.map((d2) => {
@@ -17076,27 +17818,28 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
       originalY: d2.y
     };
   })];
-  const paddingScale = linear2().domain([4, 1]).range([2, 10]).clamp(true);
-  let simulation = simulation_default(items).force("centerX", x_default2(width / 2).strength(items[0].depth <= 2 ? 0.01 : 0)).force("centerY", y_default2(height / 2).strength(items[0].depth <= 2 ? 0.05 : 0)).force("centerX2", x_default2(parentPosition == null ? void 0 : parentPosition[0]).strength(parentPosition ? 0.5 : 0)).force("centerY2", y_default2(parentPosition == null ? void 0 : parentPosition[1]).strength(parentPosition ? 0.5 : 0)).force("x", x_default2((d2) => {
+  const paddingScale = sqrt().domain([maxDepth, 1]).range([3, 8]).clamp(true);
+  let simulation = simulation_default(items).force("centerX", x_default2(width / 2).strength(items[0].depth <= 2 ? 0.01 : 0)).force("centerY", y_default2(height / 2).strength(items[0].depth <= 2 ? 0.01 : 0)).force("centerX2", x_default2(parentPosition == null ? void 0 : parentPosition[0]).strength(parentPosition ? 0.3 : 0)).force("centerY2", y_default2(parentPosition == null ? void 0 : parentPosition[1]).strength(parentPosition ? 0.8 : 0)).force("x", x_default2((d2) => {
     var _a;
     return ((_a = cachedPositions[d2.data.path]) == null ? void 0 : _a[0]) || width / 2;
   }).strength((d2) => {
     var _a;
-    return ((_a = cachedPositions[d2.data.path]) == null ? void 0 : _a[1]) ? 0.5 : 0.2;
+    return ((_a = cachedPositions[d2.data.path]) == null ? void 0 : _a[1]) ? 0.5 : width / height * 0.3;
   })).force("y", y_default2((d2) => {
     var _a;
     return ((_a = cachedPositions[d2.data.path]) == null ? void 0 : _a[1]) || height / 2;
   }).strength((d2) => {
     var _a;
-    return ((_a = cachedPositions[d2.data.path]) == null ? void 0 : _a[0]) ? 0.5 : 0.1;
-  })).force("collide", collide_default((d2) => d2.children ? d2.r + paddingScale(d2.depth) : d2.r + 2).iterations(9).strength(1)).stop();
-  for (let i = 0; i < 290; i++) {
+    return ((_a = cachedPositions[d2.data.path]) == null ? void 0 : _a[0]) ? 0.5 : height / width * 0.3;
+  })).force("collide", collide_default((d2) => d2.children ? d2.r + paddingScale(d2.depth) : d2.r + 1.6).iterations(8).strength(1)).stop();
+  for (let i = 0; i < 280; i++) {
     simulation.tick();
     items.forEach((d2) => {
+      var _a;
       d2.x = keepBetween(d2.r, d2.x, width - d2.r);
-      d2.y = keepBetween(d2.r + 30, d2.y, height - d2.r);
+      d2.y = keepBetween(d2.r, d2.y, height - d2.r);
       if (parentPosition && parentRadius) {
-        const containedPosition = keepCircleInsideCircle(parentRadius, parentPosition, d2.r, [d2.x, d2.y]);
+        const containedPosition = keepCircleInsideCircle(parentRadius, parentPosition, d2.r, [d2.x, d2.y], !!((_a = d2.children) == null ? void 0 : _a.length));
         d2.x = containedPosition[0];
         d2.y = containedPosition[1];
       }
@@ -17125,6 +17868,8 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
       ];
       item.children = item.children.map((child) => repositionChildren(child, itemReflowDiff[0], itemReflowDiff[1]));
       if (item.children.length > 4) {
+        if (item.depth > maxDepth)
+          return;
         item.children.forEach((child) => {
           const childCachedPosition = repositionedCachedPositions[child.data.path];
           if (childCachedPosition) {
@@ -17139,7 +17884,7 @@ var reflowSiblings = (siblings, cachedPositions = {}, parentRadius, parentPositi
             ];
           }
         });
-        item.children = reflowSiblings(item.children, repositionedCachedPositions, item.r, [item.x, item.y]);
+        item.children = reflowSiblings(item.children, repositionedCachedPositions, maxDepth, item.r, [item.x, item.y]);
       }
     }
   }
@@ -17170,12 +17915,14 @@ var main = async () => {
   ]);
   core.endGroup();
   const maxDepth = core.getInput("max_depth") || 9;
+  const colorEncoding = core.getInput("color_encoding") || "type";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
   const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
   const data = await processDir(`./`, excludedPaths);
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data,
-    maxDepth: +maxDepth
+    maxDepth: +maxDepth,
+    colorEncoding
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);
