@@ -16678,8 +16678,7 @@ var colorTheme = "file";
 var looseFilesId = "__structure_loose_file__";
 var width = 1e3;
 var height = 1e3;
-var maxDepth = 9;
-var Tree = ({ data, filesChanged = [] }) => {
+var Tree = ({ data, filesChanged = [], maxDepth = 9 }) => {
   const [selectedNodeId, setSelectedNodeId] = (0, import_react2.useState)(null);
   const cachedPositions = (0, import_react2.useRef)({});
   const cachedOrders = (0, import_react2.useRef)({});
@@ -17170,11 +17169,13 @@ var main = async () => {
     `${username}@users.noreply.github.com`
   ]);
   core.endGroup();
+  const maxDepth = core.getInput("max_depth") || 9;
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
   const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
   const data = await processDir(`./`, excludedPaths);
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
-    data
+    data,
+    maxDepth: +maxDepth
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);

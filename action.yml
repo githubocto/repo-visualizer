@@ -8,6 +8,9 @@ inputs:
   excluded_paths:
     description: "A list of paths to exclude from the diagram, separated by commas. For example: dist,node_modules"
     required: false
+  max_depth:
+    description: "The maximum number of nested folders to show files within. Default: 9"
+    required: false
 runs:
   using: "node12"
   main: "index.js"
