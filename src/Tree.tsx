@@ -93,7 +93,7 @@ export const Tree = (
       // @ts-ignore
       colorEncoding === "last-change" ? "#C7ECEE" : "#FEEAA7",
       // @ts-ignore
-      colorEncoding === "last-change" ? "#3C40C6" : "#823471",
+      colorEncoding === "number-of-changes" ? "#3C40C6" : "#823471",
     ];
     const colorScale = scaleLinear()
       .domain(

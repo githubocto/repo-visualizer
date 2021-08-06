@@ -17482,7 +17482,7 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) =
       "#f4f4f4",
       "#f4f4f4",
       colorEncoding === "last-change" ? "#C7ECEE" : "#FEEAA7",
-      colorEncoding === "last-change" ? "#3C40C6" : "#823471"
+      colorEncoding === "number-of-changes" ? "#3C40C6" : "#823471"
     ];
     const colorScale2 = linear2().domain(range_default(0, colors.length).map((i) => +colorExtent2[0] + (colorExtent2[1] - colorExtent2[0]) * i / (colors.length - 1))).range(colors).clamp(true);
     return { colorScale: colorScale2, colorExtent: colorExtent2 };
