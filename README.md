@@ -28,7 +28,7 @@ Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn
 
 The maximum number of nested folders to show files within. A higher number will take longer to render.
 
-Default: 5
+Default: 9
 
 ## Example usage
 
