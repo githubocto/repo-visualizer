@@ -44,7 +44,7 @@ You'll need to run the `actions/checkout` Action beforehand, to check out the co
 - name: Checkout code
   uses: actions/checkout@master
 - name: Update diagram
-  uses: githubocto/repo-visualizer@0.3.0
+  uses: githubocto/repo-visualizer@0.4.0
   with:
     output_file: "images/diagram.svg"
     excluded_paths: "dist,node_modules"
