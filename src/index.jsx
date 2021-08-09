@@ -24,6 +24,7 @@ const main = async () => {
 
   const maxDepth = core.getInput("max_depth") || 9
   const colorEncoding = core.getInput("color_encoding") || "type"
+  const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram"
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock"
   const excludedPaths = excludedPathsString.split(",").map(str => str.trim())
   const data = await processDir(`./`, excludedPaths);
@@ -44,7 +45,7 @@ const main = async () => {
     return
   }
 
-  await exec('git', ['commit', '-m', "Repo visualizer: updated diagram"])
+  await exec('git', ['commit', '-m', commitMessage])
   await exec('git', ['push'])
 
   console.log("All set!")
