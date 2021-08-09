@@ -17916,6 +17916,7 @@ var main = async () => {
   core.endGroup();
   const maxDepth = core.getInput("max_depth") || 9;
   const colorEncoding = core.getInput("color_encoding") || "type";
+  const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
   const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
   const data = await processDir(`./`, excludedPaths);
@@ -17933,7 +17934,7 @@ var main = async () => {
     core.info("[INFO] No changes to the repo detected, exiting");
     return;
   }
-  await (0, import_exec.exec)("git", ["commit", "-m", "Repo visualizer: updated diagram"]);
+  await (0, import_exec.exec)("git", ["commit", "-m", commitMessage]);
   await (0, import_exec.exec)("git", ["push"]);
   console.log("All set!");
 };

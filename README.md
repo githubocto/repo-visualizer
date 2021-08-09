@@ -30,6 +30,12 @@ The maximum number of nested folders to show files within. A higher number will 
 
 Default: 9
 
+## `commit_message`
+
+The commit message to use when updating the diagram. Useful for skipping CI. For example: Updating diagram [skip ci]
+
+Default: Repo visualizer: updated diagram
+
 ## Example usage
 
 You'll need to run the `actions/checkout` Action beforehand, to check out the code.

@@ -11,6 +11,9 @@ inputs:
   max_depth:
     description: "The maximum number of nested folders to show files within. Default: 9"
     required: false
+  commit_message:
+    description: "The commit message to use when updating the diagram. Default: Repo visualizer: updated diagram"
+    required: false
 runs:
   using: "node12"
   main: "index.js"
