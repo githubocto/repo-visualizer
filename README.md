@@ -32,9 +32,9 @@ Default: 9
 
 ## `commit_message`
 
-The commit message to use when updating the diagram. Useful for skipping CI. For example: Updating diagram [skip ci]
+The commit message to use when updating the diagram. Useful for skipping CI. For example: `Updating diagram [skip ci]`
 
-Default: Repo visualizer: updated diagram
+Default: `Repo visualizer: updated diagram`
 
 ## Example usage
 
