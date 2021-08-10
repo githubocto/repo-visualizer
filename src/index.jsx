@@ -38,7 +38,7 @@ const main = async () => {
 
   await fs.writeFileSync(outputFile, componentCodeString)
 
-  let branchExists = true
+  let doesBranchExist = true
 
   if (branch) {
     await exec('git', ['fetch'])
@@ -47,7 +47,7 @@ const main = async () => {
       await exec('git', ['rev-parse', '--verify', branch])
       await exec('git', ['checkout', branch])
     } catch {
-      branchExists = false
+      doesBranchExist = false
       await exec('git', ['checkout', '-b', branch])
     }
   }
@@ -62,7 +62,7 @@ const main = async () => {
 
   await exec('git', ['commit', '-m', commitMessage])
 
-  if (branchExists) {
+  if (doesBranchExist) {
     await exec('git', ['push'])
   } else {
     await exec('git', ['push', '--set-upstream', 'origin', branch])

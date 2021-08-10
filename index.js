@@ -17928,14 +17928,14 @@ var main = async () => {
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);
-  let branchExists = true;
+  let doesBranchExist = true;
   if (branch) {
     await (0, import_exec.exec)("git", ["fetch"]);
     try {
       await (0, import_exec.exec)("git", ["rev-parse", "--verify", branch]);
       await (0, import_exec.exec)("git", ["checkout", branch]);
     } catch {
-      branchExists = false;
+      doesBranchExist = false;
       await (0, import_exec.exec)("git", ["checkout", "-b", branch]);
     }
   }
@@ -17947,7 +17947,7 @@ var main = async () => {
     return;
   }
   await (0, import_exec.exec)("git", ["commit", "-m", commitMessage]);
-  if (branchExists) {
+  if (doesBranchExist) {
     await (0, import_exec.exec)("git", ["push"]);
   } else {
     await (0, import_exec.exec)("git", ["push", "--set-upstream", "origin", branch]);
