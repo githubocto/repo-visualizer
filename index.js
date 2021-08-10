@@ -17936,6 +17936,7 @@ var main = async () => {
       await (0, import_exec.exec)("git", ["checkout", branch]);
     } catch {
       doesBranchExist = false;
+      core.info(`Branch ${branch} does not yet exist, creating ${branch}.`);
       await (0, import_exec.exec)("git", ["checkout", "-b", branch]);
     }
   }
