@@ -15,7 +15,7 @@ inputs:
     description: "The commit message to use when updating the diagram. Default: Repo visualizer: updated diagram"
     required: false
   branch:
-    description: "If you want to push the diagram to a different branch (branch will be created if it does not exist)"
+    description: "The branch name to push the diagram to (branch will be created if it does not yet exist). For example: diagram"
     required: false
 runs:
   using: "node12"

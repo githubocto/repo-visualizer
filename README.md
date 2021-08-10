@@ -36,6 +36,12 @@ The commit message to use when updating the diagram. Useful for skipping CI. For
 
 Default: `Repo visualizer: updated diagram`
 
+## `branch`
+
+The branch name to push the diagram to (branch will be created if it does not yet exist).
+
+For example: `diagram`
+
 ## Example usage
 
 You'll need to run the `actions/checkout` Action beforehand, to check out the code.
