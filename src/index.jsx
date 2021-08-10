@@ -27,6 +27,7 @@ const main = async () => {
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram"
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock"
   const excludedPaths = excludedPathsString.split(",").map(str => str.trim())
+  const branch = core.getInput("branch")
   const data = await processDir(`./`, excludedPaths);
 
   const componentCodeString = ReactDOMServer.renderToStaticMarkup(
@@ -37,6 +38,20 @@ const main = async () => {
 
   await fs.writeFileSync(outputFile, componentCodeString)
 
+  let branchExists = true
+
+  if (branch) {
+    await exec('git', ['fetch'])
+
+    try {
+      await exec('git', ['rev-parse', '--verify', branch])
+      await exec('git', ['checkout', branch])
+    } catch {
+      branchExists = false
+      await exec('git', ['checkout', '-b', branch])
+    }
+  }
+
   await exec('git', ['add', outputFile])
   const diff = await execWithOutput('git', ['status', '--porcelain', outputFile])
   core.info(`diff: ${diff}`)
@@ -46,7 +61,16 @@ const main = async () => {
   }
 
   await exec('git', ['commit', '-m', commitMessage])
-  await exec('git', ['push'])
+
+  if (branchExists) {
+    await exec('git', ['push'])
+  } else {
+    await exec('git', ['push', '--set-upstream', 'origin', branch])
+  }
+
+  if (branch) {
+    await exec('git', 'checkout', '-')
+  }
 
   console.log("All set!")
 }
@@ -73,4 +97,3 @@ function execWithOutput(command, args) {
     }
   })
 }
-

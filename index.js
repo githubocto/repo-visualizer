@@ -17919,6 +17919,7 @@ var main = async () => {
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
   const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
+  const branch = core.getInput("branch");
   const data = await processDir(`./`, excludedPaths);
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data,
@@ -17927,6 +17928,17 @@ var main = async () => {
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);
+  let branchExists = true;
+  if (branch) {
+    await (0, import_exec.exec)("git", ["fetch"]);
+    try {
+      await (0, import_exec.exec)("git", ["rev-parse", "--verify", branch]);
+      await (0, import_exec.exec)("git", ["checkout", branch]);
+    } catch {
+      branchExists = false;
+      await (0, import_exec.exec)("git", ["checkout", "-b", branch]);
+    }
+  }
   await (0, import_exec.exec)("git", ["add", outputFile]);
   const diff = await execWithOutput("git", ["status", "--porcelain", outputFile]);
   core.info(`diff: ${diff}`);
@@ -17935,7 +17947,14 @@ var main = async () => {
     return;
   }
   await (0, import_exec.exec)("git", ["commit", "-m", commitMessage]);
-  await (0, import_exec.exec)("git", ["push"]);
+  if (branchExists) {
+    await (0, import_exec.exec)("git", ["push"]);
+  } else {
+    await (0, import_exec.exec)("git", ["push", "--set-upstream", "origin", branch]);
+  }
+  if (branch) {
+    await (0, import_exec.exec)("git", "checkout", "-");
+  }
   console.log("All set!");
 };
 main();
