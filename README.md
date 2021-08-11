@@ -28,7 +28,9 @@ Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn
 
 The directory (and its children) that you want to visualize in the diagram.
 
-Default: ./
+For example: `./src/`
+
+Default: `./`
 
 ## `max_depth`
 
