@@ -17914,13 +17914,14 @@ var main = async () => {
     `${username}@users.noreply.github.com`
   ]);
   core.endGroup();
+  const rootPath = core.getInput("root_path") || "./";
   const maxDepth = core.getInput("max_depth") || 9;
   const colorEncoding = core.getInput("color_encoding") || "type";
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
   const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
   const branch = core.getInput("branch");
-  const data = await processDir(`./`, excludedPaths);
+  const data = await processDir(rootPath, excludedPaths);
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data,
     maxDepth: +maxDepth,
