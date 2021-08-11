@@ -24,6 +24,13 @@ For example: dist,node_modules
 
 Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.vscode,package-lock.json,yarn.lock
 
+
+## `root_path`
+
+The directory you want this action to run into.
+
+Default: ./
+
 ## `max_depth`
 
 The maximum number of nested folders to show files within. A higher number will take longer to render.
