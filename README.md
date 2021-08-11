@@ -27,7 +27,7 @@ Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn
 
 ## `root_path`
 
-The directory you want this action to run into
+The directory you want this action to run into.
 
 Default: ./
 
