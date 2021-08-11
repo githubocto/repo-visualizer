@@ -9,7 +9,7 @@ inputs:
     description: "A list of paths to exclude from the diagram, separated by commas. For example: dist,node_modules"
     required: false
   root_path:
-    description: "The directory you want this action to run into. Default: ./"
+    description: "The directory (and its children) that you want to visualize in the diagram. Default: ./"
     required: false
   max_depth:
     description: "The maximum number of nested folders to show files within. Default: 9"
