@@ -1,15 +1,18 @@
 import fs from "fs";
+import * as nodePath from 'path';
+import { shouldExcludePath } from './should-exclude-path';
 
-export const processDir = async (rootPath, excludedPaths = []) => {
+
+export const processDir = async (rootPath, excludedPaths = [], excludedGlobs = []) => {
   if (!rootPath) {
     console.log("no rootPath specified");
     return;
   }
 
   const foldersToIgnore = [".git", ...excludedPaths]
-  const fullPathFoldersToIgnore = foldersToIgnore.map((d) =>
-    `${rootPath}/${d}`
-  );
+  const fullPathFoldersToIgnore = new Set(foldersToIgnore.map((d) =>
+    nodePath.join(rootPath, d)
+  ));
 
 
   const getFileStats = async (path = "") => {
@@ -29,27 +32,35 @@ export const processDir = async (rootPath, excludedPaths = []) => {
   ) => {
     try {
       console.log("Looking in ", path);
+
       if (isFolder) {
-        const files = await fs.readdirSync(path);
-        const children = []
-        for (const file of files) {
-          if (fullPathFoldersToIgnore.includes(rootPath + "/" + file)) {
+        const filesOrFolders = await fs.readdirSync(path);
+        const children = [];
+
+        for (const fileOrFolder of filesOrFolders) {
+          const fullPath = nodePath.join(rootPath, fileOrFolder);
+          if (shouldExcludePath(fullPath, fullPathFoldersToIgnore, excludedGlobs)) {
             continue;
           }
-          const info = fs.statSync(path + "/" + file);
 
+          const info = fs.statSync(fullPath);
           const stats = await addItemToTree(
-            path + "/" + file,
+            fullPath,
             info.isDirectory(),
           );
           if (stats) children.push(stats);
         }
+
         const stats = await getFileStats(path);
         return { ...stats, children };
-      } else {
-        const stats = getFileStats(path);
-        return stats;
       }
+
+      if (shouldExcludePath(path, fullPathFoldersToIgnore, excludedGlobs)) {
+        return null;
+      }
+      const stats = getFileStats(path);
+      return stats;
+
     } catch (e) {
       console.log("Issue trying to read file", path, e);
       return null;

@@ -18,19 +18,33 @@ Default: diagram.svg
 
 ## `excluded_paths`
 
-A list of paths to exclude from the diagram, separated by commas.
+A list of paths to folders to exclude from the diagram, separated by commas.
 
 For example: dist,node_modules
 
 Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.vscode,package-lock.json,yarn.lock
 
+## `excluded_globs`
+
+A semicolon-delimited array of file [globs](https://globster.xyz/) to exclude from the diagram, using [micromatch](https://github.com/micromatch/micromatch) syntax. Provided as an array.
+
+For example:
+
+```yaml
+excluded_globs: 'frontend/*.spec.js;**/*.{png,jpg};**/!(*.module).ts'
+# Guide:
+# - 'frontend/*.spec.js' # exclude frontend tests
+# - '**/*.{png,ico,md}'  # all png, ico, md files in any directory
+# - '**/!(*.module).ts'  # all TS files except module files
+```
+
 ## `root_path`
 
-The directory (and its children) that you want to visualize in the diagram.
+The directory (and its children) that you want to visualize in the diagram, relative to the repository root.
 
-For example: `./src/`
+For example: `src/`
 
-Default: `./`
+Default: `''` (current directory)
 
 ## `max_depth`
 
