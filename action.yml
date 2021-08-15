@@ -8,8 +8,11 @@ inputs:
   excluded_paths:
     description: "A list of paths to exclude from the diagram, separated by commas. For example: dist,node_modules"
     required: false
+  excluded_globs:
+    description: "A list of micromatch globs to exclude from the diagram, separated by semicolons. For example: **/*.png;docs/**/*.{png,ico}"
+    required: false
   root_path:
-    description: "The directory (and its children) that you want to visualize in the diagram. Default: ./"
+    description: "The directory (and its children) that you want to visualize in the diagram. Default: "" (repository root directory)"
     required: false
   max_depth:
     description: "The maximum number of nested folders to show files within. Default: 9"
