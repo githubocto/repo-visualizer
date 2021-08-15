@@ -17,8 +17,12 @@ jobs:
         with:
           node-version: 14
 
-      - name: Install dependencies with aching
+      - name: Install dependencies with caching
         uses: bahmutov/npm-install@v1
+
+      - name: Check types
+        run: |
+          yarn run typecheck
 
       - name: Run unit tests
         run: |
