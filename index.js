@@ -12832,7 +12832,7 @@ var processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) =
   const foldersToIgnore = [".git", ...excludedPaths];
   const fullPathFoldersToIgnore = new Set(foldersToIgnore.map((d2) => nodePath.join(rootPath, d2)));
   const getFileStats = async (path = "") => {
-    const stats = await import_fs.default.statSync(path || "./");
+    const stats = await import_fs.default.statSync(`./${path}`);
     const name = path.split("/").filter(Boolean).slice(-1)[0];
     const size = stats.size;
     const relativePath = path.slice(rootPath.length + 1);
@@ -12844,9 +12844,9 @@ var processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) =
   };
   const addItemToTree = async (path = "", isFolder = true) => {
     try {
-      console.log("Looking in ", path || "./");
+      console.log("Looking in ", `./${path}`);
       if (isFolder) {
-        const filesOrFolders = await import_fs.default.readdirSync(path || "./");
+        const filesOrFolders = await import_fs.default.readdirSync(`./${path}`);
         const children2 = [];
         for (const fileOrFolder of filesOrFolders) {
           const fullPath = nodePath.join(rootPath, fileOrFolder);
