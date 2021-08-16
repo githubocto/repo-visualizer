@@ -12,7 +12,7 @@ inputs:
     description: "A list of micromatch globs to exclude from the diagram, separated by semicolons. For example: **/*.png;docs/**/*.{png,ico}"
     required: false
   root_path:
-    description: "The directory (and its children) that you want to visualize in the diagram. Default: "" (repository root directory)"
+    description: 'The directory (and its children) that you want to visualize in the diagram. Default: "" (repository root directory)'
     required: false
   max_depth:
     description: "The maximum number of nested folders to show files within. Default: 9"
