@@ -11,7 +11,7 @@ export const processDir = async (rootPath = "", excludedPaths = [], excludedGlob
 
 
   const getFileStats = async (path = "") => {
-    const stats = await fs.statSync(path);
+    const stats = await fs.statSync(path || "./");
     const name = path.split("/").filter(Boolean).slice(-1)[0];
     const size = stats.size;
     const relativePath = path.slice(rootPath.length + 1);
@@ -26,10 +26,10 @@ export const processDir = async (rootPath = "", excludedPaths = [], excludedGlob
     isFolder = true,
   ) => {
     try {
-      console.log("Looking in ", path);
+      console.log("Looking in ", path || "./");
 
       if (isFolder) {
-        const filesOrFolders = await fs.readdirSync(path);
+        const filesOrFolders = await fs.readdirSync(path || "./");
         const children = [];
 
         for (const fileOrFolder of filesOrFolders) {
