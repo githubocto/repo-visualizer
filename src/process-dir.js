@@ -3,12 +3,7 @@ import * as nodePath from 'path';
 import { shouldExcludePath } from './should-exclude-path';
 
 
-export const processDir = async (rootPath, excludedPaths = [], excludedGlobs = []) => {
-  if (!rootPath) {
-    console.log("no rootPath specified");
-    return;
-  }
-
+export const processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) => {
   const foldersToIgnore = [".git", ...excludedPaths]
   const fullPathFoldersToIgnore = new Set(foldersToIgnore.map((d) =>
     nodePath.join(rootPath, d)

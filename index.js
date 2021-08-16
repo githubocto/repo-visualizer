@@ -12826,11 +12826,7 @@ var shouldExcludePath = (path, pathsToIgnore, globsToIgnore) => {
 };
 
 // src/process-dir.js
-var processDir = async (rootPath, excludedPaths = [], excludedGlobs = []) => {
-  if (!rootPath) {
-    console.log("no rootPath specified");
-    return;
-  }
+var processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) => {
   const foldersToIgnore = [".git", ...excludedPaths];
   const fullPathFoldersToIgnore = new Set(foldersToIgnore.map((d2) => nodePath.join(rootPath, d2)));
   const getFileStats = async (path = "") => {
