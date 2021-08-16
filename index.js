@@ -12822,6 +12822,8 @@ var nodePath = __toModule(require("path"));
 // src/should-exclude-path.ts
 var import_micromatch = __toModule(require_micromatch());
 var shouldExcludePath = (path, pathsToIgnore, globsToIgnore) => {
+  if (!path)
+    return false;
   return pathsToIgnore.has(path) || globsToIgnore.some((glob) => (0, import_micromatch.isMatch)(path, glob));
 };
 

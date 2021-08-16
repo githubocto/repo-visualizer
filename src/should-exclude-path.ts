@@ -5,6 +5,7 @@ import { isMatch } from 'micromatch';
  * path may be to a directory or individual file.
  */
 export const shouldExcludePath = (path: string, pathsToIgnore: Set<string>, globsToIgnore: string[]): boolean => {
+  if (!path) return false
 
   return pathsToIgnore.has(path) || globsToIgnore.some(glob => isMatch(path, glob));
 }
