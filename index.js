@@ -12849,7 +12849,7 @@ var processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) =
         const filesOrFolders = await import_fs.default.readdirSync(`./${path}`);
         const children2 = [];
         for (const fileOrFolder of filesOrFolders) {
-          const fullPath = nodePath.join(rootPath, fileOrFolder);
+          const fullPath = nodePath.join(path, fileOrFolder);
           if (shouldExcludePath(fullPath, fullPathFoldersToIgnore, excludedGlobs)) {
             continue;
           }

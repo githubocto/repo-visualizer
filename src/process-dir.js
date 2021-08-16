@@ -33,7 +33,7 @@ export const processDir = async (rootPath = "", excludedPaths = [], excludedGlob
         const children = [];
 
         for (const fileOrFolder of filesOrFolders) {
-          const fullPath = nodePath.join(rootPath, fileOrFolder);
+          const fullPath = nodePath.join(path, fileOrFolder);
           if (shouldExcludePath(fullPath, fullPathFoldersToIgnore, excludedGlobs)) {
             continue;
           }
