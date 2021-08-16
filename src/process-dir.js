@@ -38,7 +38,7 @@ export const processDir = async (rootPath = "", excludedPaths = [], excludedGlob
             continue;
           }
 
-          const info = fs.statSync(fullPath);
+          const info = fs.statSync(`./${fullPath}`);
           const stats = await addItemToTree(
             fullPath,
             info.isDirectory(),

@@ -12853,7 +12853,7 @@ var processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) =
           if (shouldExcludePath(fullPath, fullPathFoldersToIgnore, excludedGlobs)) {
             continue;
           }
-          const info2 = import_fs.default.statSync(fullPath);
+          const info2 = import_fs.default.statSync(`./${fullPath}`);
           const stats3 = await addItemToTree(fullPath, info2.isDirectory());
           if (stats3)
             children2.push(stats3);
