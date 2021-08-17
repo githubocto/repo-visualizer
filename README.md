@@ -31,7 +31,7 @@ A semicolon-delimited array of file [globs](https://globster.xyz/) to exclude fr
 For example:
 
 ```yaml
-excluded_globs: 'frontend/*.spec.js;**/*.{png,jpg};**/!(*.module).ts'
+excluded_globs: "frontend/*.spec.js;**/*.{png,jpg};**/!(*.module).ts"
 # Guide:
 # - 'frontend/*.spec.js' # exclude frontend tests
 # - '**/*.{png,ico,md}'  # all png, ico, md files in any directory
