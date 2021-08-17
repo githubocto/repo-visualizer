@@ -22,14 +22,19 @@ const main = async () => {
   core.endGroup()
 
 
-  const rootPath = core.getInput("root_path") || "./";
+  const rootPath = core.getInput("root_path") || ""; // Micro and minimatch do not support paths starting with ./
   const maxDepth = core.getInput("max_depth") || 9
   const colorEncoding = core.getInput("color_encoding") || "type"
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram"
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock"
   const excludedPaths = excludedPathsString.split(",").map(str => str.trim())
+
+  // Split on semicolons instead of commas since ',' are allowed in globs, but ';' are not + are not permitted in file/folder names.
+  const excludedGlobsString = core.getInput('excluded_globs') || '';
+  const excludedGlobs = excludedGlobsString.split(";");
+
   const branch = core.getInput("branch")
-  const data = await processDir(rootPath, excludedPaths);
+  const data = await processDir(rootPath, excludedPaths, excludedGlobs);
 
   const componentCodeString = ReactDOMServer.renderToStaticMarkup(
     <Tree data={data} maxDepth={+maxDepth} colorEncoding={colorEncoding} />

@@ -1,0 +1,29 @@
+name: JS - Unit Tests
+
+on: push
+
+jobs:
+
+  run-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Install dependencies with caching
+        uses: bahmutov/npm-install@v1
+
+      - name: Check types
+        run: |
+          yarn run typecheck
+
+      - name: Run unit tests
+        run: |
+          yarn run test
