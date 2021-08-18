@@ -82,7 +82,9 @@ const main = async () => {
   console.log("All set!")
 }
 
-main()
+main().catch((e) => {
+  core.setFailed(e)
+})
 
 function execWithOutput(command, args) {
   return new Promise((resolve, reject) => {
