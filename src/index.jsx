@@ -92,8 +92,6 @@ const main = async () => {
     const result = await client.uploadArtifact(core.getInput('artifact_name'), [outputFile], '.')
     if (result.failedItems.length > 0) {
       throw 'Artifact was not uploaded successfully.'
-    } else {
-      core.info(`Diagram uploaded under name ${result.artifactName}`)
     }
     core.endGroup()
   }
