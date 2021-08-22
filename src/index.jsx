@@ -68,7 +68,7 @@ const main = async () => {
     return
   }
 
-  const shouldPush = getAsBoolean(core.getInput('push'), true)
+  const shouldPush = core.getBooleanInput('push')
   if (shouldPush) {
     core.startGroup('Commit and push diagram')
     await exec('git', ['commit', '-m', commitMessage])
@@ -85,7 +85,7 @@ const main = async () => {
     core.endGroup()
   }
 
-  const shouldUpload = getAsBoolean(core.getInput('upload'), false)
+  const shouldUpload = core.getBooleanInput('upload')
   if (shouldUpload) {
     core.startGroup('Upload diagram to artifacts')
     const client = artifact.create()
@@ -124,8 +124,4 @@ function execWithOutput(command, args) {
       reject(e)
     }
   })
-}
-
-function getAsBoolean(option, defaultValue) {
-  return option === '' ? defaultValue : (option.toLowerCase() === 'true')
 }
