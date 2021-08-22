@@ -8,7 +8,7 @@ For a full demo, check out the [githubocto/repo-visualizer-demo](https://github.
 
 ## Inputs
 
-## `output_file`
+### `output_file`
 
 A path (relative to the root of your repo) to where you would like the diagram to live.
 
@@ -16,7 +16,7 @@ For example: images/diagram.svg
 
 Default: diagram.svg
 
-## `excluded_paths`
+### `excluded_paths`
 
 A list of paths to folders to exclude from the diagram, separated by commas.
 
@@ -24,7 +24,7 @@ For example: dist,node_modules
 
 Default: node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.vscode,package-lock.json,yarn.lock
 
-## `excluded_globs`
+### `excluded_globs`
 
 A semicolon-delimited array of file [globs](https://globster.xyz/) to exclude from the diagram, using [micromatch](https://github.com/micromatch/micromatch) syntax. Provided as an array.
 
@@ -38,7 +38,7 @@ excluded_globs: 'frontend/*.spec.js;**/*.{png,jpg};**/!(*.module).ts'
 # - '**/!(*.module).ts'  # all TS files except module files
 ```
 
-## `root_path`
+### `root_path`
 
 The directory (and its children) that you want to visualize in the diagram, relative to the repository root.
 
@@ -46,13 +46,13 @@ For example: `src/`
 
 Default: `''` (current directory)
 
-## `max_depth`
+### `max_depth`
 
 The maximum number of nested folders to show files within. A higher number will take longer to render.
 
 Default: 9
 
-## `push`
+### `push`
 
 Whether to make a new commit with the diagram and push it to the original repository.
 
@@ -60,19 +60,19 @@ Should be a boolean value, i.e. `true` or `false`. See `commit_message` and `bra
 
 Default: `false`
 
-## `commit_message`
+### `commit_message`
 
 The commit message to use when updating the diagram. Useful for skipping CI. For example: `Updating diagram [skip ci]`
 
 Default: `Repo visualizer: updated diagram`
 
-## `branch`
+### `branch`
 
 The branch name to push the diagram to (branch will be created if it does not yet exist).
 
 For example: `diagram`
 
-## `artifact_name`
+### `artifact_name`
 
 The name of an [artifact](https://docs.github.com/en/actions/guides/storing-workflow-data-as-artifacts) to create containing the diagram.
 
@@ -82,7 +82,7 @@ Default: `''` (no artifact)
 
 ## Outputs
 
-## `svg`
+### `svg`
 
 The contents of the diagram as text. This can be used if you don't want to handle new files.
 
