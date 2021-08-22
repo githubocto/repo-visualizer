@@ -52,6 +52,14 @@ The maximum number of nested folders to show files within. A higher number will 
 
 Default: 9
 
+## `push`
+
+Whether to make a new commit with the diagram and push it to the original repository.
+
+Should be a boolean value, i.e. `true` or `false`. See `commit_message` and `branch` for how to customise the commit.
+
+Default: `false`
+
 ## `commit_message`
 
 The commit message to use when updating the diagram. Useful for skipping CI. For example: `Updating diagram [skip ci]`
@@ -63,6 +71,14 @@ Default: `Repo visualizer: updated diagram`
 The branch name to push the diagram to (branch will be created if it does not yet exist).
 
 For example: `diagram`
+
+## `artifact_name`
+
+The name of an [artifact](https://docs.github.com/en/actions/guides/storing-workflow-data-as-artifacts) to create containing the diagram.
+
+If unspecified, no artifact will be created.
+
+Default: `''` (no artifact)
 
 ## Example usage
 
@@ -77,3 +93,30 @@ You'll need to run the `actions/checkout` Action beforehand, to check out the co
     output_file: "images/diagram.svg"
     excluded_paths: "dist,node_modules"
 ```
+
+
+## Accessing the diagram
+
+By default, this action will create a new commit with the diagram on the specified branch.
+
+If you want to avoid new commits, you can create an artifact to accompany the workflow run,
+by specifying an `artifact_name`. You can then download the diagram using the
+[`actions/download-artifact`](https://github.com/marketplace/actions/download-a-build-artifact)
+action from a later step in your workflow,
+or by using the [GitHub API](https://docs.github.com/en/rest/reference/actions#artifacts).
+
+Example:
+```yaml
+- name: Update diagram
+  uses: githubocto/repo-visualizer@0.6.1
+  with:
+    output_file: "images/diagram.svg"
+    artifact_name: my-diagram
+- name: Get artifact
+  uses: actions/download-artifact@v2
+  with:
+    name: my-diagram
+    path: downloads
+  # Diagram now available at downloads/images/diagram.svg
+```
+Note that this will still also create a commit, unless you specify `push: false`!
