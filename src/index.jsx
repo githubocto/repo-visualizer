@@ -85,11 +85,11 @@ const main = async () => {
     core.endGroup()
   }
 
-  const shouldUpload = core.getBooleanInput('upload')
+  const shouldUpload = core.getInput('artifact_name') !== ''
   if (shouldUpload) {
     core.startGroup('Upload diagram to artifacts')
     const client = artifact.create()
-    const result = await client.uploadArtifact('Diagram', [outputFile], '.')
+    const result = await client.uploadArtifact(core.getInput('artifact_name'), [outputFile], '.')
     if (result.failedItems.length > 0) {
       throw 'Artifact was not uploaded successfully.'
     } else {

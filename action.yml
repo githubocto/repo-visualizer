@@ -27,10 +27,10 @@ inputs:
     description: "Whether to push the new commit back to the repository. Must be true or false. Default: true"
     required: false
     default: true
-  upload:
-    description: "Whether to upload the new diagram as an artiface. Must be true or false. Default: false"
+  artifact_name:
+    description: "If given, the name of an artifact to be created containing the diagram. Default: don't create an artifact."
     required: false
-    default: false
+    default: ''
 runs:
   using: "node12"
   main: "index.js"
