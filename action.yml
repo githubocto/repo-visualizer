@@ -23,6 +23,9 @@ inputs:
   branch:
     description: "The branch name to push the diagram to (branch will be created if it does not yet exist). For example: diagram"
     required: false
+  push:
+    description: "Whether to push the new commit back to the repository. Default: true"
+    required: false
 runs:
   using: "node12"
   main: "index.js"

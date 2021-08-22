@@ -67,16 +67,21 @@ const main = async () => {
     return
   }
 
-  await exec('git', ['commit', '-m', commitMessage])
+  const shouldPush = getAsBoolean(core.getInput('push'), true)
+  if (shouldPush) {
+    core.startGroup('Commit and push diagram')
+    await exec('git', ['commit', '-m', commitMessage])
 
-  if (doesBranchExist) {
-    await exec('git', ['push'])
-  } else {
-    await exec('git', ['push', '--set-upstream', 'origin', branch])
-  }
+    if (doesBranchExist) {
+      await exec('git', ['push'])
+    } else {
+      await exec('git', ['push', '--set-upstream', 'origin', branch])
+    }
 
-  if (branch) {
-    await exec('git', 'checkout', '-')
+    if (branch) {
+      await exec('git', 'checkout', '-')
+    }
+    core.endGroup()
   }
 
   console.log("All set!")
@@ -105,4 +110,8 @@ function execWithOutput(command, args) {
       reject(e)
     }
   })
+}
+
+function getAsBoolean(option, defaultValue) {
+  return option === '' ? defaultValue : (option.toLowerCase() === 'true')
 }
