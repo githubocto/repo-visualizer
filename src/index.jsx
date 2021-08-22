@@ -1,5 +1,6 @@
 import { exec } from '@actions/exec'
 import * as core from '@actions/core'
+import * as artifact from '@actions/artifact'
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import fs from "fs"
@@ -80,6 +81,19 @@ const main = async () => {
 
     if (branch) {
       await exec('git', 'checkout', '-')
+    }
+    core.endGroup()
+  }
+
+  const shouldUpload = getAsBoolean(core.getInput('upload'), false)
+  if (shouldUpload) {
+    core.startGroup('Upload diagram to artifacts')
+    const client = artifact.create()
+    const result = await client.uploadArtifact('Diagram', [outputFile], '.')
+    if (result.failedItems.length > 0) {
+      throw 'Artifact was not uploaded successfully.'
+    } else {
+      core.info(`Diagram uploaded under name ${result.artifactName}`)
     }
     core.endGroup()
   }

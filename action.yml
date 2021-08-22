@@ -26,6 +26,9 @@ inputs:
   push:
     description: "Whether to push the new commit back to the repository. Default: true"
     required: false
+  upload:
+    description: "Whether to upload the new diagram as an artiface. Default: false"
+    required: false
 runs:
   using: "node12"
   main: "index.js"
