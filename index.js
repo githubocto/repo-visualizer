@@ -1354,11 +1354,11 @@ var require_core = __commonJS({
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
     exports2.getBooleanInput = getBooleanInput2;
-    function setOutput(name, value) {
+    function setOutput2(name, value) {
       process.stdout.write(os2.EOL);
       command_1.issueCommand("set-output", { name }, value);
     }
-    exports2.setOutput = setOutput;
+    exports2.setOutput = setOutput2;
     function setCommandEcho(enabled) {
       command_1.issue("echo", enabled ? "on" : "off");
     }
@@ -1717,11 +1717,11 @@ var require_core2 = __commonJS({
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
     }
     exports2.getBooleanInput = getBooleanInput2;
-    function setOutput(name, value) {
+    function setOutput2(name, value) {
       process.stdout.write(os2.EOL);
       command_1.issueCommand("set-output", { name }, value);
     }
-    exports2.setOutput = setOutput;
+    exports2.setOutput = setOutput2;
     function setCommandEcho(enabled) {
       command_1.issue("echo", enabled ? "on" : "off");
     }
@@ -26278,6 +26278,7 @@ var main = async () => {
     colorEncoding
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
+  core.setOutput("svg", componentCodeString);
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);
   let doesBranchExist = true;
   if (branch) {

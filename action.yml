@@ -31,6 +31,9 @@ inputs:
     description: "If given, the name of an artifact to be created containing the diagram. Default: don't create an artifact."
     required: false
     default: ''
+outputs:
+  svg:
+    description: "The diagram contents as text"
 runs:
   using: "node12"
   main: "index.js"

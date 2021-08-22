@@ -43,6 +43,8 @@ const main = async () => {
 
   const outputFile = core.getInput("output_file") || "./diagram.svg"
 
+  core.setOutput('svg', componentCodeString)
+
   await fs.writeFileSync(outputFile, componentCodeString)
 
   let doesBranchExist = true

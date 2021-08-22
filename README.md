@@ -80,6 +80,12 @@ If unspecified, no artifact will be created.
 
 Default: `''` (no artifact)
 
+## Outputs
+
+## `svg`
+
+The contents of the diagram as text. This can be used if you don't want to handle new files.
+
 ## Example usage
 
 You'll need to run the `actions/checkout` Action beforehand, to check out the code.
@@ -108,6 +114,7 @@ or by using the [GitHub API](https://docs.github.com/en/rest/reference/actions#a
 Example:
 ```yaml
 - name: Update diagram
+  id: make_diagram
   uses: githubocto/repo-visualizer@0.6.1
   with:
     output_file: "images/diagram.svg"
@@ -120,3 +127,6 @@ Example:
   # Diagram now available at downloads/images/diagram.svg
 ```
 Note that this will still also create a commit, unless you specify `push: false`!
+
+Alternatively, the SVG description of the diagram is available in the `svg` output,
+which you can refer to in your workflow as e.g. `${{ steps.make_diagram.outputs.svg }}`.
