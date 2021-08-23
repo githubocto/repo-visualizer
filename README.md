@@ -52,13 +52,13 @@ The maximum number of nested folders to show files within. A higher number will 
 
 Default: 9
 
-### `push`
+### `should_push`
 
 Whether to make a new commit with the diagram and push it to the original repository.
 
 Should be a boolean value, i.e. `true` or `false`. See `commit_message` and `branch` for how to customise the commit.
 
-Default: `false`
+Default: `true`
 
 ### `commit_message`
 
@@ -126,7 +126,7 @@ Example:
     path: downloads
   # Diagram now available at downloads/images/diagram.svg
 ```
-Note that this will still also create a commit, unless you specify `push: false`!
+Note that this will still also create a commit, unless you specify `should_push: false`!
 
 Alternatively, the SVG description of the diagram is available in the `svg` output,
 which you can refer to in your workflow as e.g. `${{ steps.make_diagram.outputs.svg }}`.

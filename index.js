@@ -26299,7 +26299,7 @@ var main = async () => {
     core.info("[INFO] No changes to the repo detected, exiting");
     return;
   }
-  const shouldPush = core.getBooleanInput("push");
+  const shouldPush = core.getBooleanInput("should_push");
   if (shouldPush) {
     core.startGroup("Commit and push diagram");
     await (0, import_exec.exec)("git", ["commit", "-m", commitMessage]);

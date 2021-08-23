@@ -70,7 +70,7 @@ const main = async () => {
     return
   }
 
-  const shouldPush = core.getBooleanInput('push')
+  const shouldPush = core.getBooleanInput('should_push')
   if (shouldPush) {
     core.startGroup('Commit and push diagram')
     await exec('git', ['commit', '-m', commitMessage])
