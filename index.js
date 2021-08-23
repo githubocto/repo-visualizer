@@ -1363,11 +1363,11 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issue("echo", enabled ? "on" : "off");
     }
     exports2.setCommandEcho = setCommandEcho;
-    function setFailed(message) {
+    function setFailed2(message) {
       process.exitCode = ExitCode.Failure;
       error(message);
     }
-    exports2.setFailed = setFailed;
+    exports2.setFailed = setFailed2;
     function isDebug() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
@@ -20635,7 +20635,9 @@ var main = async () => {
   }
   console.log("All set!");
 };
-main();
+main().catch((e3) => {
+  core.setFailed(e3);
+});
 function execWithOutput(command2, args) {
   return new Promise((resolve, reject) => {
     try {
