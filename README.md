@@ -117,13 +117,13 @@ Example:
   id: make_diagram
   uses: githubocto/repo-visualizer@0.6.1
   with:
-    output_file: "images/diagram.svg"
-    artifact_name: my-diagram
+    output_file: "output-diagram.svg"
+    artifact_name: "my-diagram"
 - name: Get artifact
   uses: actions/download-artifact@v2
   with:
-    name: my-diagram
-    path: downloads
+    name: "my-diagram"
+    path: "downloads"
   # Diagram now available at downloads/images/diagram.svg
 ```
 Note that this will still also create a commit, unless you specify `should_push: false`!
