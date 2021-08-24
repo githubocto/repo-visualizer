@@ -124,8 +124,8 @@ Example:
   with:
     name: "my-diagram"
     path: "downloads"
-  # Diagram now available at downloads/images/diagram.svg
 ```
+In this example, the diagram will be available at downloads/my-diagram.svg
 Note that this will still also create a commit, unless you specify `should_push: false`!
 
 Alternatively, the SVG description of the diagram is available in the `svg` output,
