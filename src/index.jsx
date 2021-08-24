@@ -1,5 +1,6 @@
 import { exec } from '@actions/exec'
 import * as core from '@actions/core'
+import * as artifact from '@actions/artifact'
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import fs from "fs"
@@ -42,6 +43,8 @@ const main = async () => {
 
   const outputFile = core.getInput("output_file") || "./diagram.svg"
 
+  core.setOutput('svg', componentCodeString)
+
   await fs.writeFileSync(outputFile, componentCodeString)
 
   let doesBranchExist = true
@@ -67,16 +70,32 @@ const main = async () => {
     return
   }
 
-  await exec('git', ['commit', '-m', commitMessage])
+  const shouldPush = core.getBooleanInput('should_push')
+  if (shouldPush) {
+    core.startGroup('Commit and push diagram')
+    await exec('git', ['commit', '-m', commitMessage])
 
-  if (doesBranchExist) {
-    await exec('git', ['push'])
-  } else {
-    await exec('git', ['push', '--set-upstream', 'origin', branch])
+    if (doesBranchExist) {
+      await exec('git', ['push'])
+    } else {
+      await exec('git', ['push', '--set-upstream', 'origin', branch])
+    }
+
+    if (branch) {
+      await exec('git', 'checkout', '-')
+    }
+    core.endGroup()
   }
 
-  if (branch) {
-    await exec('git', 'checkout', '-')
+  const shouldUpload = core.getInput('artifact_name') !== ''
+  if (shouldUpload) {
+    core.startGroup('Upload diagram to artifacts')
+    const client = artifact.create()
+    const result = await client.uploadArtifact(core.getInput('artifact_name'), [outputFile], '.')
+    if (result.failedItems.length > 0) {
+      throw 'Artifact was not uploaded successfully.'
+    }
+    core.endGroup()
   }
 
   console.log("All set!")

@@ -23,6 +23,17 @@ inputs:
   branch:
     description: "The branch name to push the diagram to (branch will be created if it does not yet exist). For example: diagram"
     required: false
+  should_push:
+    description: "Whether to push the new commit back to the repository. Must be true or false. Default: true"
+    required: false
+    default: true
+  artifact_name:
+    description: "If given, the name of an artifact to be created containing the diagram. Default: don't create an artifact."
+    required: false
+    default: ''
+outputs:
+  svg:
+    description: "The diagram contents as text"
 runs:
   using: "node12"
   main: "index.js"
