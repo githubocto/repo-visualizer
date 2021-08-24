@@ -115,7 +115,7 @@ Example:
 ```yaml
 - name: Update diagram
   id: make_diagram
-  uses: githubocto/repo-visualizer@0.6.1
+  uses: githubocto/repo-visualizer@0.7.0
   with:
     output_file: "output-diagram.svg"
     artifact_name: "my-diagram"
