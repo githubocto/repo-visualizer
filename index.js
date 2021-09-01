@@ -18498,7 +18498,14 @@ var import_micromatch = __toModule(require_micromatch());
 var shouldExcludePath = (path, pathsToIgnore, globsToIgnore) => {
   if (!path)
     return false;
-  return pathsToIgnore.has(path) || globsToIgnore.some((glob) => glob && (0, import_micromatch.isMatch)(path, glob));
+  return pathsToIgnore.has(path) || globsToIgnore.some((glob) => glob && (0, import_micromatch.isMatch)(processPath(path), glob, {
+    dot: true
+  }));
+};
+var processPath = (path) => {
+  if (path.startsWith("./"))
+    return path.substring(2);
+  return path;
 };
 
 // src/process-dir.js
