@@ -25,7 +25,7 @@ const main = async () => {
 
   const rootPath = core.getInput("root_path") || ""; // Micro and minimatch do not support paths starting with ./
   const maxDepth = core.getInput("max_depth") || 9
-  const customizeFileColors = JSON.parse(core.getInput("customize_file_colors") ||  '{}'); // such as '{"js": "red", "ts": "green"}'
+  const customizeFileColors = JSON.parse(core.getInput("customize_file_colors") ||  '{}');
   const colorEncoding = core.getInput("color_encoding") || "type"
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram"
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock"

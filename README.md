@@ -80,6 +80,13 @@ If unspecified, no artifact will be created.
 
 Default: `''` (no artifact)
 
+### `customize_file_colors`
+
+User can customize color of file. need to be a Json String. it will replace the key-value pair of [src/language-colors.json].
+
+For example: '{"js": "red","ts": "green"}'
+default: '{}'
+
 ## Outputs
 
 ### `svg`
