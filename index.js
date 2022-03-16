@@ -1075,7 +1075,7 @@ var require_utils = __commonJS({
   "node_modules/@actions/core/lib/utils.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.toCommandValue = void 0;
+    exports2.toCommandProperties = exports2.toCommandValue = void 0;
     function toCommandValue(input) {
       if (input === null || input === void 0) {
         return "";
@@ -1085,6 +1085,20 @@ var require_utils = __commonJS({
       return JSON.stringify(input);
     }
     exports2.toCommandValue = toCommandValue;
+    function toCommandProperties(annotationProperties) {
+      if (!Object.keys(annotationProperties).length) {
+        return {};
+      }
+      return {
+        title: annotationProperties.title,
+        file: annotationProperties.file,
+        line: annotationProperties.startLine,
+        endLine: annotationProperties.endLine,
+        col: annotationProperties.startColumn,
+        endColumn: annotationProperties.endColumn
+      };
+    }
+    exports2.toCommandProperties = toCommandProperties;
   }
 });
 
@@ -1225,565 +1239,6 @@ var require_file_command = __commonJS({
       });
     }
     exports2.issueCommand = issueCommand;
-  }
-});
-
-// node_modules/@actions/core/lib/core.js
-var require_core = __commonJS({
-  "node_modules/@actions/core/lib/core.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      Object.defineProperty(o, k2, { enumerable: true, get: function() {
-        return m4[k];
-      } });
-    } : function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      o[k2] = m4[k];
-    });
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v2) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v2 });
-    } : function(o, v2) {
-      o["default"] = v2;
-    });
-    var __importStar = exports2 && exports2.__importStar || function(mod2) {
-      if (mod2 && mod2.__esModule)
-        return mod2;
-      var result = {};
-      if (mod2 != null) {
-        for (var k in mod2)
-          if (k !== "default" && Object.hasOwnProperty.call(mod2, k))
-            __createBinding(result, mod2, k);
-      }
-      __setModuleDefault(result, mod2);
-      return result;
-    };
-    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
-      function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve) {
-          resolve(value);
-        });
-      }
-      return new (P || (P = Promise))(function(resolve, reject) {
-        function fulfilled(value) {
-          try {
-            step(generator.next(value));
-          } catch (e3) {
-            reject(e3);
-          }
-        }
-        function rejected(value) {
-          try {
-            step(generator["throw"](value));
-          } catch (e3) {
-            reject(e3);
-          }
-        }
-        function step(result) {
-          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-        }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-      });
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.getState = exports2.saveState = exports2.group = exports2.endGroup = exports2.startGroup = exports2.info = exports2.warning = exports2.error = exports2.debug = exports2.isDebug = exports2.setFailed = exports2.setCommandEcho = exports2.setOutput = exports2.getBooleanInput = exports2.getMultilineInput = exports2.getInput = exports2.addPath = exports2.setSecret = exports2.exportVariable = exports2.ExitCode = void 0;
-    var command_1 = require_command();
-    var file_command_1 = require_file_command();
-    var utils_1 = require_utils();
-    var os2 = __importStar(require("os"));
-    var path = __importStar(require("path"));
-    var ExitCode;
-    (function(ExitCode2) {
-      ExitCode2[ExitCode2["Success"] = 0] = "Success";
-      ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
-    })(ExitCode = exports2.ExitCode || (exports2.ExitCode = {}));
-    function exportVariable(name, val) {
-      const convertedVal = utils_1.toCommandValue(val);
-      process.env[name] = convertedVal;
-      const filePath = process.env["GITHUB_ENV"] || "";
-      if (filePath) {
-        const delimiter = "_GitHubActionsFileCommandDelimeter_";
-        const commandValue = `${name}<<${delimiter}${os2.EOL}${convertedVal}${os2.EOL}${delimiter}`;
-        file_command_1.issueCommand("ENV", commandValue);
-      } else {
-        command_1.issueCommand("set-env", { name }, convertedVal);
-      }
-    }
-    exports2.exportVariable = exportVariable;
-    function setSecret(secret) {
-      command_1.issueCommand("add-mask", {}, secret);
-    }
-    exports2.setSecret = setSecret;
-    function addPath(inputPath) {
-      const filePath = process.env["GITHUB_PATH"] || "";
-      if (filePath) {
-        file_command_1.issueCommand("PATH", inputPath);
-      } else {
-        command_1.issueCommand("add-path", {}, inputPath);
-      }
-      process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
-    }
-    exports2.addPath = addPath;
-    function getInput2(name, options) {
-      const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
-      if (options && options.required && !val) {
-        throw new Error(`Input required and not supplied: ${name}`);
-      }
-      if (options && options.trimWhitespace === false) {
-        return val;
-      }
-      return val.trim();
-    }
-    exports2.getInput = getInput2;
-    function getMultilineInput(name, options) {
-      const inputs = getInput2(name, options).split("\n").filter((x2) => x2 !== "");
-      return inputs;
-    }
-    exports2.getMultilineInput = getMultilineInput;
-    function getBooleanInput2(name, options) {
-      const trueValue = ["true", "True", "TRUE"];
-      const falseValue = ["false", "False", "FALSE"];
-      const val = getInput2(name, options);
-      if (trueValue.includes(val))
-        return true;
-      if (falseValue.includes(val))
-        return false;
-      throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
-Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
-    }
-    exports2.getBooleanInput = getBooleanInput2;
-    function setOutput2(name, value) {
-      process.stdout.write(os2.EOL);
-      command_1.issueCommand("set-output", { name }, value);
-    }
-    exports2.setOutput = setOutput2;
-    function setCommandEcho(enabled) {
-      command_1.issue("echo", enabled ? "on" : "off");
-    }
-    exports2.setCommandEcho = setCommandEcho;
-    function setFailed2(message) {
-      process.exitCode = ExitCode.Failure;
-      error(message);
-    }
-    exports2.setFailed = setFailed2;
-    function isDebug() {
-      return process.env["RUNNER_DEBUG"] === "1";
-    }
-    exports2.isDebug = isDebug;
-    function debug(message) {
-      command_1.issueCommand("debug", {}, message);
-    }
-    exports2.debug = debug;
-    function error(message) {
-      command_1.issue("error", message instanceof Error ? message.toString() : message);
-    }
-    exports2.error = error;
-    function warning(message) {
-      command_1.issue("warning", message instanceof Error ? message.toString() : message);
-    }
-    exports2.warning = warning;
-    function info2(message) {
-      process.stdout.write(message + os2.EOL);
-    }
-    exports2.info = info2;
-    function startGroup2(name) {
-      command_1.issue("group", name);
-    }
-    exports2.startGroup = startGroup2;
-    function endGroup2() {
-      command_1.issue("endgroup");
-    }
-    exports2.endGroup = endGroup2;
-    function group(name, fn) {
-      return __awaiter(this, void 0, void 0, function* () {
-        startGroup2(name);
-        let result;
-        try {
-          result = yield fn();
-        } finally {
-          endGroup2();
-        }
-        return result;
-      });
-    }
-    exports2.group = group;
-    function saveState(name, value) {
-      command_1.issueCommand("save-state", { name }, value);
-    }
-    exports2.saveState = saveState;
-    function getState(name) {
-      return process.env[`STATE_${name}`] || "";
-    }
-    exports2.getState = getState;
-  }
-});
-
-// node_modules/@actions/artifact/node_modules/@actions/core/lib/utils.js
-var require_utils2 = __commonJS({
-  "node_modules/@actions/artifact/node_modules/@actions/core/lib/utils.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.toCommandProperties = exports2.toCommandValue = void 0;
-    function toCommandValue(input) {
-      if (input === null || input === void 0) {
-        return "";
-      } else if (typeof input === "string" || input instanceof String) {
-        return input;
-      }
-      return JSON.stringify(input);
-    }
-    exports2.toCommandValue = toCommandValue;
-    function toCommandProperties(annotationProperties) {
-      if (!Object.keys(annotationProperties).length) {
-        return {};
-      }
-      return {
-        title: annotationProperties.title,
-        line: annotationProperties.startLine,
-        endLine: annotationProperties.endLine,
-        col: annotationProperties.startColumn,
-        endColumn: annotationProperties.endColumn
-      };
-    }
-    exports2.toCommandProperties = toCommandProperties;
-  }
-});
-
-// node_modules/@actions/artifact/node_modules/@actions/core/lib/command.js
-var require_command2 = __commonJS({
-  "node_modules/@actions/artifact/node_modules/@actions/core/lib/command.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      Object.defineProperty(o, k2, { enumerable: true, get: function() {
-        return m4[k];
-      } });
-    } : function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      o[k2] = m4[k];
-    });
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v2) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v2 });
-    } : function(o, v2) {
-      o["default"] = v2;
-    });
-    var __importStar = exports2 && exports2.__importStar || function(mod2) {
-      if (mod2 && mod2.__esModule)
-        return mod2;
-      var result = {};
-      if (mod2 != null) {
-        for (var k in mod2)
-          if (k !== "default" && Object.hasOwnProperty.call(mod2, k))
-            __createBinding(result, mod2, k);
-      }
-      __setModuleDefault(result, mod2);
-      return result;
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.issue = exports2.issueCommand = void 0;
-    var os2 = __importStar(require("os"));
-    var utils_1 = require_utils2();
-    function issueCommand(command2, properties2, message) {
-      const cmd2 = new Command(command2, properties2, message);
-      process.stdout.write(cmd2.toString() + os2.EOL);
-    }
-    exports2.issueCommand = issueCommand;
-    function issue(name, message = "") {
-      issueCommand(name, {}, message);
-    }
-    exports2.issue = issue;
-    var CMD_STRING = "::";
-    var Command = class {
-      constructor(command2, properties2, message) {
-        if (!command2) {
-          command2 = "missing.command";
-        }
-        this.command = command2;
-        this.properties = properties2;
-        this.message = message;
-      }
-      toString() {
-        let cmdStr = CMD_STRING + this.command;
-        if (this.properties && Object.keys(this.properties).length > 0) {
-          cmdStr += " ";
-          let first = true;
-          for (const key in this.properties) {
-            if (this.properties.hasOwnProperty(key)) {
-              const val = this.properties[key];
-              if (val) {
-                if (first) {
-                  first = false;
-                } else {
-                  cmdStr += ",";
-                }
-                cmdStr += `${key}=${escapeProperty(val)}`;
-              }
-            }
-          }
-        }
-        cmdStr += `${CMD_STRING}${escapeData(this.message)}`;
-        return cmdStr;
-      }
-    };
-    function escapeData(s) {
-      return utils_1.toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
-    }
-    function escapeProperty(s) {
-      return utils_1.toCommandValue(s).replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
-    }
-  }
-});
-
-// node_modules/@actions/artifact/node_modules/@actions/core/lib/file-command.js
-var require_file_command2 = __commonJS({
-  "node_modules/@actions/artifact/node_modules/@actions/core/lib/file-command.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      Object.defineProperty(o, k2, { enumerable: true, get: function() {
-        return m4[k];
-      } });
-    } : function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      o[k2] = m4[k];
-    });
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v2) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v2 });
-    } : function(o, v2) {
-      o["default"] = v2;
-    });
-    var __importStar = exports2 && exports2.__importStar || function(mod2) {
-      if (mod2 && mod2.__esModule)
-        return mod2;
-      var result = {};
-      if (mod2 != null) {
-        for (var k in mod2)
-          if (k !== "default" && Object.hasOwnProperty.call(mod2, k))
-            __createBinding(result, mod2, k);
-      }
-      __setModuleDefault(result, mod2);
-      return result;
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.issueCommand = void 0;
-    var fs4 = __importStar(require("fs"));
-    var os2 = __importStar(require("os"));
-    var utils_1 = require_utils2();
-    function issueCommand(command2, message) {
-      const filePath = process.env[`GITHUB_${command2}`];
-      if (!filePath) {
-        throw new Error(`Unable to find environment variable for file command ${command2}`);
-      }
-      if (!fs4.existsSync(filePath)) {
-        throw new Error(`Missing file at path: ${filePath}`);
-      }
-      fs4.appendFileSync(filePath, `${utils_1.toCommandValue(message)}${os2.EOL}`, {
-        encoding: "utf8"
-      });
-    }
-    exports2.issueCommand = issueCommand;
-  }
-});
-
-// node_modules/@actions/artifact/node_modules/@actions/core/lib/core.js
-var require_core2 = __commonJS({
-  "node_modules/@actions/artifact/node_modules/@actions/core/lib/core.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      Object.defineProperty(o, k2, { enumerable: true, get: function() {
-        return m4[k];
-      } });
-    } : function(o, m4, k, k2) {
-      if (k2 === void 0)
-        k2 = k;
-      o[k2] = m4[k];
-    });
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v2) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v2 });
-    } : function(o, v2) {
-      o["default"] = v2;
-    });
-    var __importStar = exports2 && exports2.__importStar || function(mod2) {
-      if (mod2 && mod2.__esModule)
-        return mod2;
-      var result = {};
-      if (mod2 != null) {
-        for (var k in mod2)
-          if (k !== "default" && Object.hasOwnProperty.call(mod2, k))
-            __createBinding(result, mod2, k);
-      }
-      __setModuleDefault(result, mod2);
-      return result;
-    };
-    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
-      function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve) {
-          resolve(value);
-        });
-      }
-      return new (P || (P = Promise))(function(resolve, reject) {
-        function fulfilled(value) {
-          try {
-            step(generator.next(value));
-          } catch (e3) {
-            reject(e3);
-          }
-        }
-        function rejected(value) {
-          try {
-            step(generator["throw"](value));
-          } catch (e3) {
-            reject(e3);
-          }
-        }
-        function step(result) {
-          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-        }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-      });
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.getState = exports2.saveState = exports2.group = exports2.endGroup = exports2.startGroup = exports2.info = exports2.notice = exports2.warning = exports2.error = exports2.debug = exports2.isDebug = exports2.setFailed = exports2.setCommandEcho = exports2.setOutput = exports2.getBooleanInput = exports2.getMultilineInput = exports2.getInput = exports2.addPath = exports2.setSecret = exports2.exportVariable = exports2.ExitCode = void 0;
-    var command_1 = require_command2();
-    var file_command_1 = require_file_command2();
-    var utils_1 = require_utils2();
-    var os2 = __importStar(require("os"));
-    var path = __importStar(require("path"));
-    var ExitCode;
-    (function(ExitCode2) {
-      ExitCode2[ExitCode2["Success"] = 0] = "Success";
-      ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
-    })(ExitCode = exports2.ExitCode || (exports2.ExitCode = {}));
-    function exportVariable(name, val) {
-      const convertedVal = utils_1.toCommandValue(val);
-      process.env[name] = convertedVal;
-      const filePath = process.env["GITHUB_ENV"] || "";
-      if (filePath) {
-        const delimiter = "_GitHubActionsFileCommandDelimeter_";
-        const commandValue = `${name}<<${delimiter}${os2.EOL}${convertedVal}${os2.EOL}${delimiter}`;
-        file_command_1.issueCommand("ENV", commandValue);
-      } else {
-        command_1.issueCommand("set-env", { name }, convertedVal);
-      }
-    }
-    exports2.exportVariable = exportVariable;
-    function setSecret(secret) {
-      command_1.issueCommand("add-mask", {}, secret);
-    }
-    exports2.setSecret = setSecret;
-    function addPath(inputPath) {
-      const filePath = process.env["GITHUB_PATH"] || "";
-      if (filePath) {
-        file_command_1.issueCommand("PATH", inputPath);
-      } else {
-        command_1.issueCommand("add-path", {}, inputPath);
-      }
-      process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
-    }
-    exports2.addPath = addPath;
-    function getInput2(name, options) {
-      const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
-      if (options && options.required && !val) {
-        throw new Error(`Input required and not supplied: ${name}`);
-      }
-      if (options && options.trimWhitespace === false) {
-        return val;
-      }
-      return val.trim();
-    }
-    exports2.getInput = getInput2;
-    function getMultilineInput(name, options) {
-      const inputs = getInput2(name, options).split("\n").filter((x2) => x2 !== "");
-      return inputs;
-    }
-    exports2.getMultilineInput = getMultilineInput;
-    function getBooleanInput2(name, options) {
-      const trueValue = ["true", "True", "TRUE"];
-      const falseValue = ["false", "False", "FALSE"];
-      const val = getInput2(name, options);
-      if (trueValue.includes(val))
-        return true;
-      if (falseValue.includes(val))
-        return false;
-      throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
-Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
-    }
-    exports2.getBooleanInput = getBooleanInput2;
-    function setOutput2(name, value) {
-      process.stdout.write(os2.EOL);
-      command_1.issueCommand("set-output", { name }, value);
-    }
-    exports2.setOutput = setOutput2;
-    function setCommandEcho(enabled) {
-      command_1.issue("echo", enabled ? "on" : "off");
-    }
-    exports2.setCommandEcho = setCommandEcho;
-    function setFailed2(message) {
-      process.exitCode = ExitCode.Failure;
-      error(message);
-    }
-    exports2.setFailed = setFailed2;
-    function isDebug() {
-      return process.env["RUNNER_DEBUG"] === "1";
-    }
-    exports2.isDebug = isDebug;
-    function debug(message) {
-      command_1.issueCommand("debug", {}, message);
-    }
-    exports2.debug = debug;
-    function error(message, properties2 = {}) {
-      command_1.issueCommand("error", utils_1.toCommandProperties(properties2), message instanceof Error ? message.toString() : message);
-    }
-    exports2.error = error;
-    function warning(message, properties2 = {}) {
-      command_1.issueCommand("warning", utils_1.toCommandProperties(properties2), message instanceof Error ? message.toString() : message);
-    }
-    exports2.warning = warning;
-    function notice(message, properties2 = {}) {
-      command_1.issueCommand("notice", utils_1.toCommandProperties(properties2), message instanceof Error ? message.toString() : message);
-    }
-    exports2.notice = notice;
-    function info2(message) {
-      process.stdout.write(message + os2.EOL);
-    }
-    exports2.info = info2;
-    function startGroup2(name) {
-      command_1.issue("group", name);
-    }
-    exports2.startGroup = startGroup2;
-    function endGroup2() {
-      command_1.issue("endgroup");
-    }
-    exports2.endGroup = endGroup2;
-    function group(name, fn) {
-      return __awaiter(this, void 0, void 0, function* () {
-        startGroup2(name);
-        let result;
-        try {
-          result = yield fn();
-        } finally {
-          endGroup2();
-        }
-        return result;
-      });
-    }
-    exports2.group = group;
-    function saveState(name, value) {
-      command_1.issueCommand("save-state", { name }, value);
-    }
-    exports2.saveState = saveState;
-    function getState(name) {
-      return process.env[`STATE_${name}`] || "";
-    }
-    exports2.getState = getState;
   }
 });
 
@@ -2589,6 +2044,307 @@ var require_auth = __commonJS({
   }
 });
 
+// node_modules/@actions/core/lib/oidc-utils.js
+var require_oidc_utils = __commonJS({
+  "node_modules/@actions/core/lib/oidc-utils.js"(exports2) {
+    "use strict";
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e3) {
+            reject(e3);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e3) {
+            reject(e3);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.OidcClient = void 0;
+    var http_client_1 = require_http_client();
+    var auth_1 = require_auth();
+    var core_1 = require_core();
+    var OidcClient = class {
+      static createHttpClient(allowRetry = true, maxRetry = 10) {
+        const requestOptions = {
+          allowRetries: allowRetry,
+          maxRetries: maxRetry
+        };
+        return new http_client_1.HttpClient("actions/oidc-client", [new auth_1.BearerCredentialHandler(OidcClient.getRequestToken())], requestOptions);
+      }
+      static getRequestToken() {
+        const token = process.env["ACTIONS_ID_TOKEN_REQUEST_TOKEN"];
+        if (!token) {
+          throw new Error("Unable to get ACTIONS_ID_TOKEN_REQUEST_TOKEN env variable");
+        }
+        return token;
+      }
+      static getIDTokenUrl() {
+        const runtimeUrl = process.env["ACTIONS_ID_TOKEN_REQUEST_URL"];
+        if (!runtimeUrl) {
+          throw new Error("Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable");
+        }
+        return runtimeUrl;
+      }
+      static getCall(id_token_url) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+          const httpclient = OidcClient.createHttpClient();
+          const res2 = yield httpclient.getJson(id_token_url).catch((error) => {
+            throw new Error(`Failed to get ID Token. 
+ 
+        Error Code : ${error.statusCode}
+ 
+        Error Message: ${error.result.message}`);
+          });
+          const id_token = (_a = res2.result) === null || _a === void 0 ? void 0 : _a.value;
+          if (!id_token) {
+            throw new Error("Response json body do not have ID Token field");
+          }
+          return id_token;
+        });
+      }
+      static getIDToken(audience) {
+        return __awaiter(this, void 0, void 0, function* () {
+          try {
+            let id_token_url = OidcClient.getIDTokenUrl();
+            if (audience) {
+              const encodedAudience = encodeURIComponent(audience);
+              id_token_url = `${id_token_url}&audience=${encodedAudience}`;
+            }
+            core_1.debug(`ID token url is ${id_token_url}`);
+            const id_token = yield OidcClient.getCall(id_token_url);
+            core_1.setSecret(id_token);
+            return id_token;
+          } catch (error) {
+            throw new Error(`Error message: ${error.message}`);
+          }
+        });
+      }
+    };
+    exports2.OidcClient = OidcClient;
+  }
+});
+
+// node_modules/@actions/core/lib/core.js
+var require_core = __commonJS({
+  "node_modules/@actions/core/lib/core.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m4, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m4[k];
+      } });
+    } : function(o, m4, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m4[k];
+    });
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? function(o, v2) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v2 });
+    } : function(o, v2) {
+      o["default"] = v2;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod2) {
+      if (mod2 && mod2.__esModule)
+        return mod2;
+      var result = {};
+      if (mod2 != null) {
+        for (var k in mod2)
+          if (k !== "default" && Object.hasOwnProperty.call(mod2, k))
+            __createBinding(result, mod2, k);
+      }
+      __setModuleDefault(result, mod2);
+      return result;
+    };
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e3) {
+            reject(e3);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e3) {
+            reject(e3);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.getIDToken = exports2.getState = exports2.saveState = exports2.group = exports2.endGroup = exports2.startGroup = exports2.info = exports2.notice = exports2.warning = exports2.error = exports2.debug = exports2.isDebug = exports2.setFailed = exports2.setCommandEcho = exports2.setOutput = exports2.getBooleanInput = exports2.getMultilineInput = exports2.getInput = exports2.addPath = exports2.setSecret = exports2.exportVariable = exports2.ExitCode = void 0;
+    var command_1 = require_command();
+    var file_command_1 = require_file_command();
+    var utils_1 = require_utils();
+    var os2 = __importStar(require("os"));
+    var path = __importStar(require("path"));
+    var oidc_utils_1 = require_oidc_utils();
+    var ExitCode;
+    (function(ExitCode2) {
+      ExitCode2[ExitCode2["Success"] = 0] = "Success";
+      ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
+    })(ExitCode = exports2.ExitCode || (exports2.ExitCode = {}));
+    function exportVariable(name, val) {
+      const convertedVal = utils_1.toCommandValue(val);
+      process.env[name] = convertedVal;
+      const filePath = process.env["GITHUB_ENV"] || "";
+      if (filePath) {
+        const delimiter = "_GitHubActionsFileCommandDelimeter_";
+        const commandValue = `${name}<<${delimiter}${os2.EOL}${convertedVal}${os2.EOL}${delimiter}`;
+        file_command_1.issueCommand("ENV", commandValue);
+      } else {
+        command_1.issueCommand("set-env", { name }, convertedVal);
+      }
+    }
+    exports2.exportVariable = exportVariable;
+    function setSecret(secret) {
+      command_1.issueCommand("add-mask", {}, secret);
+    }
+    exports2.setSecret = setSecret;
+    function addPath(inputPath) {
+      const filePath = process.env["GITHUB_PATH"] || "";
+      if (filePath) {
+        file_command_1.issueCommand("PATH", inputPath);
+      } else {
+        command_1.issueCommand("add-path", {}, inputPath);
+      }
+      process.env["PATH"] = `${inputPath}${path.delimiter}${process.env["PATH"]}`;
+    }
+    exports2.addPath = addPath;
+    function getInput2(name, options) {
+      const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
+      if (options && options.required && !val) {
+        throw new Error(`Input required and not supplied: ${name}`);
+      }
+      if (options && options.trimWhitespace === false) {
+        return val;
+      }
+      return val.trim();
+    }
+    exports2.getInput = getInput2;
+    function getMultilineInput(name, options) {
+      const inputs = getInput2(name, options).split("\n").filter((x2) => x2 !== "");
+      return inputs;
+    }
+    exports2.getMultilineInput = getMultilineInput;
+    function getBooleanInput2(name, options) {
+      const trueValue = ["true", "True", "TRUE"];
+      const falseValue = ["false", "False", "FALSE"];
+      const val = getInput2(name, options);
+      if (trueValue.includes(val))
+        return true;
+      if (falseValue.includes(val))
+        return false;
+      throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
+Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
+    }
+    exports2.getBooleanInput = getBooleanInput2;
+    function setOutput2(name, value) {
+      process.stdout.write(os2.EOL);
+      command_1.issueCommand("set-output", { name }, value);
+    }
+    exports2.setOutput = setOutput2;
+    function setCommandEcho(enabled) {
+      command_1.issue("echo", enabled ? "on" : "off");
+    }
+    exports2.setCommandEcho = setCommandEcho;
+    function setFailed2(message) {
+      process.exitCode = ExitCode.Failure;
+      error(message);
+    }
+    exports2.setFailed = setFailed2;
+    function isDebug() {
+      return process.env["RUNNER_DEBUG"] === "1";
+    }
+    exports2.isDebug = isDebug;
+    function debug(message) {
+      command_1.issueCommand("debug", {}, message);
+    }
+    exports2.debug = debug;
+    function error(message, properties2 = {}) {
+      command_1.issueCommand("error", utils_1.toCommandProperties(properties2), message instanceof Error ? message.toString() : message);
+    }
+    exports2.error = error;
+    function warning(message, properties2 = {}) {
+      command_1.issueCommand("warning", utils_1.toCommandProperties(properties2), message instanceof Error ? message.toString() : message);
+    }
+    exports2.warning = warning;
+    function notice(message, properties2 = {}) {
+      command_1.issueCommand("notice", utils_1.toCommandProperties(properties2), message instanceof Error ? message.toString() : message);
+    }
+    exports2.notice = notice;
+    function info2(message) {
+      process.stdout.write(message + os2.EOL);
+    }
+    exports2.info = info2;
+    function startGroup2(name) {
+      command_1.issue("group", name);
+    }
+    exports2.startGroup = startGroup2;
+    function endGroup2() {
+      command_1.issue("endgroup");
+    }
+    exports2.endGroup = endGroup2;
+    function group(name, fn) {
+      return __awaiter(this, void 0, void 0, function* () {
+        startGroup2(name);
+        let result;
+        try {
+          result = yield fn();
+        } finally {
+          endGroup2();
+        }
+        return result;
+      });
+    }
+    exports2.group = group;
+    function saveState(name, value) {
+      command_1.issueCommand("save-state", { name }, value);
+    }
+    exports2.saveState = saveState;
+    function getState(name) {
+      return process.env[`STATE_${name}`] || "";
+    }
+    exports2.getState = getState;
+    function getIDToken(aud) {
+      return __awaiter(this, void 0, void 0, function* () {
+        return yield oidc_utils_1.OidcClient.getIDToken(aud);
+      });
+    }
+    exports2.getIDToken = getIDToken;
+  }
+});
+
 // node_modules/@actions/artifact/lib/internal/config-variables.js
 var require_config_variables = __commonJS({
   "node_modules/@actions/artifact/lib/internal/config-variables.js"(exports2) {
@@ -2658,7 +2414,7 @@ var require_config_variables = __commonJS({
 });
 
 // node_modules/@actions/artifact/lib/internal/utils.js
-var require_utils3 = __commonJS({
+var require_utils2 = __commonJS({
   "node_modules/@actions/artifact/lib/internal/utils.js"(exports2) {
     "use strict";
     var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
@@ -2689,7 +2445,7 @@ var require_utils3 = __commonJS({
       });
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
-    var core_1 = require_core2();
+    var core_1 = require_core();
     var fs_1 = require("fs");
     var http_client_1 = require_http_client();
     var auth_1 = require_auth();
@@ -2935,9 +2691,9 @@ var require_upload_specification = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     var fs4 = __importStar(require("fs"));
-    var core_1 = require_core2();
+    var core_1 = require_core();
     var path_1 = require("path");
-    var utils_1 = require_utils3();
+    var utils_1 = require_utils2();
     function getUploadSpecification(artifactName, rootDirectory, artifactFiles) {
       utils_1.checkArtifactName(artifactName);
       const specifications = [];
@@ -3276,7 +3032,7 @@ var require_balanced_match = __commonJS({
         a2 = maybeMatch(a2, str);
       if (b instanceof RegExp)
         b = maybeMatch(b, str);
-      var r4 = range(a2, b, str);
+      var r4 = range2(a2, b, str);
       return r4 && {
         start: r4[0],
         end: r4[1],
@@ -3289,8 +3045,8 @@ var require_balanced_match = __commonJS({
       var m4 = str.match(reg2);
       return m4 ? m4[0] : null;
     }
-    balanced.range = range;
-    function range(a2, b, str) {
+    balanced.range = range2;
+    function range2(a2, b, str) {
       var begs, beg, left, right, result;
       var ai = str.indexOf(a2);
       var bi2 = str.indexOf(b, ai + 1);
@@ -3476,11 +3232,15 @@ var require_minimatch = __commonJS({
   "node_modules/minimatch/minimatch.js"(exports2, module2) {
     module2.exports = minimatch;
     minimatch.Minimatch = Minimatch;
-    var path = { sep: "/" };
-    try {
-      path = require("path");
-    } catch (er) {
-    }
+    var path = function() {
+      try {
+        return require("path");
+      } catch (e3) {
+      }
+    }() || {
+      sep: "/"
+    };
+    minimatch.sep = path.sep;
     var GLOBSTAR = minimatch.GLOBSTAR = Minimatch.GLOBSTAR = {};
     var expand = require_brace_expansion();
     var plTypes = {
@@ -3510,58 +3270,68 @@ var require_minimatch = __commonJS({
       };
     }
     function ext(a2, b) {
-      a2 = a2 || {};
       b = b || {};
       var t2 = {};
-      Object.keys(b).forEach(function(k) {
-        t2[k] = b[k];
-      });
       Object.keys(a2).forEach(function(k) {
         t2[k] = a2[k];
+      });
+      Object.keys(b).forEach(function(k) {
+        t2[k] = b[k];
       });
       return t2;
     }
     minimatch.defaults = function(def) {
-      if (!def || !Object.keys(def).length)
+      if (!def || typeof def !== "object" || !Object.keys(def).length) {
         return minimatch;
+      }
       var orig = minimatch;
       var m4 = function minimatch2(p2, pattern, options) {
-        return orig.minimatch(p2, pattern, ext(def, options));
+        return orig(p2, pattern, ext(def, options));
       };
       m4.Minimatch = function Minimatch2(pattern, options) {
         return new orig.Minimatch(pattern, ext(def, options));
       };
+      m4.Minimatch.defaults = function defaults(options) {
+        return orig.defaults(ext(def, options)).Minimatch;
+      };
+      m4.filter = function filter3(pattern, options) {
+        return orig.filter(pattern, ext(def, options));
+      };
+      m4.defaults = function defaults(options) {
+        return orig.defaults(ext(def, options));
+      };
+      m4.makeRe = function makeRe2(pattern, options) {
+        return orig.makeRe(pattern, ext(def, options));
+      };
+      m4.braceExpand = function braceExpand2(pattern, options) {
+        return orig.braceExpand(pattern, ext(def, options));
+      };
+      m4.match = function(list, pattern, options) {
+        return orig.match(list, pattern, ext(def, options));
+      };
       return m4;
     };
     Minimatch.defaults = function(def) {
-      if (!def || !Object.keys(def).length)
-        return Minimatch;
       return minimatch.defaults(def).Minimatch;
     };
     function minimatch(p2, pattern, options) {
-      if (typeof pattern !== "string") {
-        throw new TypeError("glob pattern string required");
-      }
+      assertValidPattern(pattern);
       if (!options)
         options = {};
       if (!options.nocomment && pattern.charAt(0) === "#") {
         return false;
       }
-      if (pattern.trim() === "")
-        return p2 === "";
       return new Minimatch(pattern, options).match(p2);
     }
     function Minimatch(pattern, options) {
       if (!(this instanceof Minimatch)) {
         return new Minimatch(pattern, options);
       }
-      if (typeof pattern !== "string") {
-        throw new TypeError("glob pattern string required");
-      }
+      assertValidPattern(pattern);
       if (!options)
         options = {};
       pattern = pattern.trim();
-      if (path.sep !== "/") {
+      if (!options.allowWindowsEscape && path.sep !== "/") {
         pattern = pattern.split(path.sep).join("/");
       }
       this.options = options;
@@ -3571,14 +3341,13 @@ var require_minimatch = __commonJS({
       this.negate = false;
       this.comment = false;
       this.empty = false;
+      this.partial = !!options.partial;
       this.make();
     }
     Minimatch.prototype.debug = function() {
     };
     Minimatch.prototype.make = make2;
     function make2() {
-      if (this._made)
-        return;
       var pattern = this.pattern;
       var options = this.options;
       if (!options.nocomment && pattern.charAt(0) === "#") {
@@ -3592,7 +3361,9 @@ var require_minimatch = __commonJS({
       this.parseNegate();
       var set3 = this.globSet = this.braceExpand();
       if (options.debug)
-        this.debug = console.error;
+        this.debug = function debug() {
+          console.error.apply(console, arguments);
+        };
       this.debug(this.pattern, set3);
       set3 = this.globParts = set3.map(function(s) {
         return s.split(slashSplit);
@@ -3637,23 +3408,32 @@ var require_minimatch = __commonJS({
         }
       }
       pattern = typeof pattern === "undefined" ? this.pattern : pattern;
-      if (typeof pattern === "undefined") {
-        throw new TypeError("undefined pattern");
-      }
-      if (options.nobrace || !pattern.match(/\{.*\}/)) {
+      assertValidPattern(pattern);
+      if (options.nobrace || !/\{(?:(?!\{).)*\}/.test(pattern)) {
         return [pattern];
       }
       return expand(pattern);
     }
+    var MAX_PATTERN_LENGTH = 1024 * 64;
+    var assertValidPattern = function(pattern) {
+      if (typeof pattern !== "string") {
+        throw new TypeError("invalid pattern");
+      }
+      if (pattern.length > MAX_PATTERN_LENGTH) {
+        throw new TypeError("pattern is too long");
+      }
+    };
     Minimatch.prototype.parse = parse;
     var SUBPARSE = {};
     function parse(pattern, isSub) {
-      if (pattern.length > 1024 * 64) {
-        throw new TypeError("pattern is too long");
-      }
+      assertValidPattern(pattern);
       var options = this.options;
-      if (!options.noglobstar && pattern === "**")
-        return GLOBSTAR;
+      if (pattern === "**") {
+        if (!options.noglobstar)
+          return GLOBSTAR;
+        else
+          pattern = "*";
+      }
       if (pattern === "")
         return "";
       var re3 = "";
@@ -3694,8 +3474,9 @@ var require_minimatch = __commonJS({
           continue;
         }
         switch (c3) {
-          case "/":
+          case "/": {
             return false;
+          }
           case "\\":
             clearStateChar();
             escaping = true;
@@ -3779,17 +3560,15 @@ var require_minimatch = __commonJS({
               escaping = false;
               continue;
             }
-            if (inClass) {
-              var cs2 = pattern.substring(classStart + 1, i);
-              try {
-                RegExp("[" + cs2 + "]");
-              } catch (er) {
-                var sp2 = this.parse(cs2, SUBPARSE);
-                re3 = re3.substr(0, reClassStart) + "\\[" + sp2[0] + "\\]";
-                hasMagic = hasMagic || sp2[1];
-                inClass = false;
-                continue;
-              }
+            var cs2 = pattern.substring(classStart + 1, i);
+            try {
+              RegExp("[" + cs2 + "]");
+            } catch (er) {
+              var sp2 = this.parse(cs2, SUBPARSE);
+              re3 = re3.substr(0, reClassStart) + "\\[" + sp2[0] + "\\]";
+              hasMagic = hasMagic || sp2[1];
+              inClass = false;
+              continue;
             }
             hasMagic = true;
             inClass = false;
@@ -3831,8 +3610,8 @@ var require_minimatch = __commonJS({
       }
       var addPatternStart = false;
       switch (re3.charAt(0)) {
-        case ".":
         case "[":
+        case ".":
         case "(":
           addPatternStart = true;
       }
@@ -3919,8 +3698,9 @@ var require_minimatch = __commonJS({
       }
       return list;
     };
-    Minimatch.prototype.match = match;
-    function match(f2, partial) {
+    Minimatch.prototype.match = function match(f2, partial) {
+      if (typeof partial === "undefined")
+        partial = this.partial;
       this.debug("match", f2, this.pattern);
       if (this.comment)
         return false;
@@ -3959,7 +3739,7 @@ var require_minimatch = __commonJS({
       if (options.flipNegate)
         return false;
       return this.negate;
-    }
+    };
     Minimatch.prototype.matchOne = function(file, pattern, partial) {
       var options = this.options;
       this.debug("matchOne", { "this": this, file, pattern });
@@ -4007,11 +3787,7 @@ var require_minimatch = __commonJS({
         }
         var hit;
         if (typeof p2 === "string") {
-          if (options.nocase) {
-            hit = f2.toLowerCase() === p2.toLowerCase();
-          } else {
-            hit = f2 === p2;
-          }
+          hit = f2 === p2;
           this.debug("string match", p2, f2, hit);
         } else {
           hit = f2.match(p2);
@@ -4025,8 +3801,7 @@ var require_minimatch = __commonJS({
       } else if (fi === fl) {
         return partial;
       } else if (pi === pl2) {
-        var emptyFileEnd = fi === fl - 1 && file[fi] === "";
-        return emptyFileEnd;
+        return fi === fl - 1 && file[fi] === "";
       }
       throw new Error("wtf?");
     };
@@ -4119,6 +3894,7 @@ var require_common = __commonJS({
     function ownProp(obj, field) {
       return Object.prototype.hasOwnProperty.call(obj, field);
     }
+    var fs4 = require("fs");
     var path = require("path");
     var minimatch = require_minimatch();
     var isAbsolute = require_path_is_absolute();
@@ -4173,6 +3949,7 @@ var require_common = __commonJS({
       self3.stat = !!options.stat;
       self3.noprocess = !!options.noprocess;
       self3.absolute = !!options.absolute;
+      self3.fs = options.fs || fs4;
       self3.maxLength = options.maxLength || Infinity;
       self3.cache = options.cache || Object.create(null);
       self3.statCache = options.statCache || Object.create(null);
@@ -4302,7 +4079,6 @@ var require_sync = __commonJS({
   "node_modules/glob/sync.js"(exports2, module2) {
     module2.exports = globSync;
     globSync.GlobSync = GlobSync;
-    var fs4 = require("fs");
     var rp = require_fs();
     var minimatch = require_minimatch();
     var Minimatch = minimatch.Minimatch;
@@ -4478,7 +4254,7 @@ var require_sync = __commonJS({
       var lstat;
       var stat;
       try {
-        lstat = fs4.lstatSync(abs);
+        lstat = this.fs.lstatSync(abs);
       } catch (er) {
         if (er.code === "ENOENT") {
           return null;
@@ -4504,7 +4280,7 @@ var require_sync = __commonJS({
           return c3;
       }
       try {
-        return this._readdirEntries(abs, fs4.readdirSync(abs));
+        return this._readdirEntries(abs, this.fs.readdirSync(abs));
       } catch (er) {
         this._readdirError(abs, er);
         return null;
@@ -4613,7 +4389,7 @@ var require_sync = __commonJS({
       if (!stat) {
         var lstat;
         try {
-          lstat = fs4.lstatSync(abs);
+          lstat = this.fs.lstatSync(abs);
         } catch (er) {
           if (er && (er.code === "ENOENT" || er.code === "ENOTDIR")) {
             this.statCache[abs] = false;
@@ -4622,7 +4398,7 @@ var require_sync = __commonJS({
         }
         if (lstat && lstat.isSymbolicLink()) {
           try {
-            stat = fs4.statSync(abs);
+            stat = this.fs.statSync(abs);
           } catch (er) {
             stat = lstat;
           }
@@ -4775,7 +4551,6 @@ var require_inflight = __commonJS({
 var require_glob = __commonJS({
   "node_modules/glob/glob.js"(exports2, module2) {
     module2.exports = glob;
-    var fs4 = require("fs");
     var rp = require_fs();
     var minimatch = require_minimatch();
     var Minimatch = minimatch.Minimatch;
@@ -5118,7 +4893,7 @@ var require_glob = __commonJS({
       var self3 = this;
       var lstatcb = inflight(lstatkey, lstatcb_);
       if (lstatcb)
-        fs4.lstat(abs, lstatcb);
+        self3.fs.lstat(abs, lstatcb);
       function lstatcb_(er, lstat) {
         if (er && er.code === "ENOENT")
           return cb();
@@ -5147,7 +4922,7 @@ var require_glob = __commonJS({
           return cb(null, c3);
       }
       var self3 = this;
-      fs4.readdir(abs, readdirCb(this, abs, cb));
+      self3.fs.readdir(abs, readdirCb(this, abs, cb));
     };
     function readdirCb(self3, abs, cb) {
       return function(er, entries2) {
@@ -5291,10 +5066,10 @@ var require_glob = __commonJS({
       var self3 = this;
       var statcb = inflight("stat\0" + abs, lstatcb_);
       if (statcb)
-        fs4.lstat(abs, statcb);
+        self3.fs.lstat(abs, statcb);
       function lstatcb_(er, lstat) {
         if (lstat && lstat.isSymbolicLink()) {
-          return fs4.stat(abs, function(er2, stat2) {
+          return self3.fs.stat(abs, function(er2, stat2) {
             if (er2)
               self3._stat2(f2, abs, null, lstat, cb);
             else
@@ -6007,7 +5782,7 @@ var require_status_reporter = __commonJS({
   "node_modules/@actions/artifact/lib/internal/status-reporter.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    var core_1 = require_core2();
+    var core_1 = require_core();
     var StatusReporter = class {
       constructor(displayFrequencyInMilliseconds) {
         this.totalNumberOfFilesToProcess = 0;
@@ -6061,7 +5836,7 @@ var require_http_manager = __commonJS({
   "node_modules/@actions/artifact/lib/internal/http-manager.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    var utils_1 = require_utils3();
+    var utils_1 = require_utils2();
     var HttpManager = class {
       constructor(clientCount, userAgent) {
         if (clientCount < 1) {
@@ -6250,8 +6025,8 @@ var require_requestUtils = __commonJS({
       return result;
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
-    var utils_1 = require_utils3();
-    var core2 = __importStar(require_core2());
+    var utils_1 = require_utils2();
+    var core2 = __importStar(require_core());
     var config_variables_1 = require_config_variables();
     function retry(name, operation, customErrorMessages, maxAttempts) {
       return __awaiter(this, void 0, void 0, function* () {
@@ -6352,10 +6127,10 @@ var require_upload_http_client = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     var fs4 = __importStar(require("fs"));
-    var core2 = __importStar(require_core2());
+    var core2 = __importStar(require_core());
     var tmp = __importStar(require_tmp_promise());
     var stream = __importStar(require("stream"));
-    var utils_1 = require_utils3();
+    var utils_1 = require_utils2();
     var config_variables_1 = require_config_variables();
     var util_1 = require("util");
     var url_1 = require("url");
@@ -6681,9 +6456,9 @@ var require_download_http_client = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     var fs4 = __importStar(require("fs"));
-    var core2 = __importStar(require_core2());
+    var core2 = __importStar(require_core());
     var zlib = __importStar(require("zlib"));
-    var utils_1 = require_utils3();
+    var utils_1 = require_utils2();
     var url_1 = require("url");
     var status_reporter_1 = require_status_reporter();
     var perf_hooks_1 = require("perf_hooks");
@@ -6964,10 +6739,10 @@ var require_artifact_client = __commonJS({
       return result;
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
-    var core2 = __importStar(require_core2());
+    var core2 = __importStar(require_core());
     var upload_specification_1 = require_upload_specification();
     var upload_http_client_1 = require_upload_http_client();
-    var utils_1 = require_utils3();
+    var utils_1 = require_utils2();
     var download_http_client_1 = require_download_http_client();
     var download_specification_1 = require_download_specification();
     var config_variables_1 = require_config_variables();
@@ -9131,8 +8906,10 @@ var require_react_dom_server_node_production_min = __commonJS({
         b = na;
       return b;
     }
-    for (var J = new Uint16Array(16), K = 0; 15 > K; K++)
+    for (J = new Uint16Array(16), K = 0; 15 > K; K++)
       J[K] = K + 1;
+    var J;
+    var K;
     J[15] = 0;
     var pa = /^[:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD][:A-Z_a-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\-.0-9\u00B7\u0300-\u036F\u203F-\u2040]*$/;
     var qa = Object.prototype.hasOwnProperty;
@@ -13333,7 +13110,7 @@ var require_server = __commonJS({
 });
 
 // node_modules/braces/lib/utils.js
-var require_utils4 = __commonJS({
+var require_utils3 = __commonJS({
   "node_modules/braces/lib/utils.js"(exports2) {
     "use strict";
     exports2.isInteger = (num) => {
@@ -13420,7 +13197,7 @@ var require_utils4 = __commonJS({
 var require_stringify = __commonJS({
   "node_modules/braces/lib/stringify.js"(exports2, module2) {
     "use strict";
-    var utils = require_utils4();
+    var utils = require_utils3();
     module2.exports = (ast, options = {}) => {
       let stringify = (node, parent = {}) => {
         let invalidBlock = options.escapeInvalid && utils.isInvalidBrace(parent);
@@ -13809,21 +13586,21 @@ var require_fill_range = __commonJS({
       }
       let parts = { negatives: [], positives: [] };
       let push = (num) => parts[num < 0 ? "negatives" : "positives"].push(Math.abs(num));
-      let range = [];
+      let range2 = [];
       let index = 0;
       while (descending ? a2 >= b : a2 <= b) {
         if (options.toRegex === true && step > 1) {
           push(a2);
         } else {
-          range.push(pad2(format2(a2, index), maxLen, toNumber));
+          range2.push(pad2(format2(a2, index), maxLen, toNumber));
         }
         a2 = descending ? a2 - step : a2 + step;
         index++;
       }
       if (options.toRegex === true) {
-        return step > 1 ? toSequence(parts, options) : toRegex(range, null, { wrap: false, ...options });
+        return step > 1 ? toSequence(parts, options) : toRegex(range2, null, { wrap: false, ...options });
       }
-      return range;
+      return range2;
     };
     var fillLetters = (start2, end, step = 1, options = {}) => {
       if (!isNumber(start2) && start2.length > 1 || !isNumber(end) && end.length > 1) {
@@ -13838,17 +13615,17 @@ var require_fill_range = __commonJS({
       if (options.toRegex && step === 1) {
         return toRange(min, max, false, options);
       }
-      let range = [];
+      let range2 = [];
       let index = 0;
       while (descending ? a2 >= b : a2 <= b) {
-        range.push(format2(a2, index));
+        range2.push(format2(a2, index));
         a2 = descending ? a2 - step : a2 + step;
         index++;
       }
       if (options.toRegex === true) {
-        return toRegex(range, null, { wrap: false, options });
+        return toRegex(range2, null, { wrap: false, options });
       }
-      return range;
+      return range2;
     };
     var fill = (start2, end, step, options = {}) => {
       if (end == null && isValidValue(start2)) {
@@ -13886,7 +13663,7 @@ var require_compile = __commonJS({
   "node_modules/braces/lib/compile.js"(exports2, module2) {
     "use strict";
     var fill = require_fill_range();
-    var utils = require_utils4();
+    var utils = require_utils3();
     var compile = (ast, options = {}) => {
       let walk = (node, parent = {}) => {
         let invalidBlock = utils.isInvalidBrace(parent);
@@ -13914,9 +13691,9 @@ var require_compile = __commonJS({
         }
         if (node.nodes && node.ranges > 0) {
           let args = utils.reduce(node.nodes);
-          let range = fill(...args, { ...options, wrap: false, toRegex: true });
-          if (range.length !== 0) {
-            return args.length > 1 && range.length > 1 ? `(${range})` : range;
+          let range2 = fill(...args, { ...options, wrap: false, toRegex: true });
+          if (range2.length !== 0) {
+            return args.length > 1 && range2.length > 1 ? `(${range2})` : range2;
           }
         }
         if (node.nodes) {
@@ -13938,7 +13715,7 @@ var require_expand = __commonJS({
     "use strict";
     var fill = require_fill_range();
     var stringify = require_stringify();
-    var utils = require_utils4();
+    var utils = require_utils3();
     var append = (queue = "", stash = "", enclose = false) => {
       let result = [];
       queue = [].concat(queue);
@@ -13986,11 +13763,11 @@ var require_expand = __commonJS({
           if (utils.exceedsLimit(...args, options.step, rangeLimit)) {
             throw new RangeError("expanded array length exceeds range limit. Use options.rangeLimit to increase or disable the limit.");
           }
-          let range = fill(...args, options);
-          if (range.length === 0) {
-            range = stringify(node, options);
+          let range2 = fill(...args, options);
+          if (range2.length === 0) {
+            range2 = stringify(node, options);
           }
-          q2.push(append(q2.pop(), range));
+          q2.push(append(q2.pop(), range2));
           node.nodes = [];
           return;
         }
@@ -14522,7 +14299,7 @@ var require_constants2 = __commonJS({
 });
 
 // node_modules/picomatch/lib/utils.js
-var require_utils5 = __commonJS({
+var require_utils4 = __commonJS({
   "node_modules/picomatch/lib/utils.js"(exports2) {
     "use strict";
     var path = require("path");
@@ -14588,7 +14365,7 @@ var require_utils5 = __commonJS({
 var require_scan = __commonJS({
   "node_modules/picomatch/lib/scan.js"(exports2, module2) {
     "use strict";
-    var utils = require_utils5();
+    var utils = require_utils4();
     var {
       CHAR_ASTERISK,
       CHAR_AT,
@@ -14907,7 +14684,7 @@ var require_parse2 = __commonJS({
   "node_modules/picomatch/lib/parse.js"(exports2, module2) {
     "use strict";
     var constants2 = require_constants2();
-    var utils = require_utils5();
+    var utils = require_utils4();
     var {
       MAX_LENGTH,
       POSIX_REGEX_SOURCE,
@@ -15081,7 +14858,8 @@ var require_parse2 = __commonJS({
             output = token.close = `)$))${extglobStar}`;
           }
           if (token.inner.includes("*") && (rest2 = remaining()) && /^\.[^\\/.]+$/.test(rest2)) {
-            output = token.close = `)${rest2})${extglobStar})`;
+            const expression = parse(rest2, { ...options, fastpaths: false }).output;
+            output = token.close = `)${expression})${extglobStar})`;
           }
           if (token.prev.type === "bos") {
             state.negatedExtglob = true;
@@ -15303,17 +15081,17 @@ var require_parse2 = __commonJS({
           let output = ")";
           if (brace.dots === true) {
             const arr = tokens.slice();
-            const range = [];
+            const range2 = [];
             for (let i = arr.length - 1; i >= 0; i--) {
               tokens.pop();
               if (arr[i].type === "brace") {
                 break;
               }
               if (arr[i].type !== "dots") {
-                range.unshift(arr[i].value);
+                range2.unshift(arr[i].value);
               }
             }
-            output = expandRange(range, opts);
+            output = expandRange(range2, opts);
             state.backtrack = true;
           }
           if (brace.comma !== true && brace.dots !== true) {
@@ -15689,7 +15467,7 @@ var require_picomatch = __commonJS({
     var path = require("path");
     var scan = require_scan();
     var parse = require_parse2();
-    var utils = require_utils5();
+    var utils = require_utils4();
     var constants2 = require_constants2();
     var isObject = (val) => val && typeof val === "object" && !Array.isArray(val);
     var picomatch = (glob, options, returnState = false) => {
@@ -15841,7 +15619,7 @@ var require_micromatch = __commonJS({
     var util = require("util");
     var braces = require_braces();
     var picomatch = require_picomatch2();
-    var utils = require_utils5();
+    var utils = require_utils4();
     var isEmptyString = (val) => val === "" || val === "./";
     var micromatch = (list, patterns, options) => {
       patterns = [].concat(patterns);
@@ -17826,8 +17604,8 @@ var require_stringToPath = __commonJS({
       if (string.charCodeAt(0) === 46) {
         result.push("");
       }
-      string.replace(rePropName, function(match, number3, quote, subString) {
-        result.push(quote ? subString.replace(reEscapeChar, "$1") : number3 || match);
+      string.replace(rePropName, function(match, number4, quote, subString) {
+        result.push(quote ? subString.replace(reEscapeChar, "$1") : number4 || match);
       });
       return result;
     });
@@ -18560,74 +18338,69 @@ var processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) =
 var import_react2 = __toModule(require_react());
 
 // node_modules/d3-array/src/ascending.js
-function ascending_default(a2, b) {
+function ascending(a2, b) {
   return a2 == null || b == null ? NaN : a2 < b ? -1 : a2 > b ? 1 : a2 >= b ? 0 : NaN;
 }
 
 // node_modules/d3-array/src/bisector.js
-function bisector_default(f2) {
+function bisector(f2) {
   let delta = f2;
-  let compare = f2;
-  if (f2.length === 1) {
+  let compare1 = f2;
+  let compare2 = f2;
+  if (f2.length !== 2) {
     delta = (d2, x2) => f2(d2) - x2;
-    compare = ascendingComparator(f2);
+    compare1 = ascending;
+    compare2 = (d2, x2) => ascending(f2(d2), x2);
   }
-  function left(a2, x2, lo, hi) {
-    if (lo == null)
-      lo = 0;
-    if (hi == null)
-      hi = a2.length;
-    while (lo < hi) {
-      const mid = lo + hi >>> 1;
-      if (compare(a2[mid], x2) < 0)
-        lo = mid + 1;
-      else
-        hi = mid;
+  function left(a2, x2, lo = 0, hi = a2.length) {
+    if (lo < hi) {
+      if (compare1(x2, x2) !== 0)
+        return hi;
+      do {
+        const mid = lo + hi >>> 1;
+        if (compare2(a2[mid], x2) < 0)
+          lo = mid + 1;
+        else
+          hi = mid;
+      } while (lo < hi);
     }
     return lo;
   }
-  function right(a2, x2, lo, hi) {
-    if (lo == null)
-      lo = 0;
-    if (hi == null)
-      hi = a2.length;
-    while (lo < hi) {
-      const mid = lo + hi >>> 1;
-      if (compare(a2[mid], x2) > 0)
-        hi = mid;
-      else
-        lo = mid + 1;
+  function right(a2, x2, lo = 0, hi = a2.length) {
+    if (lo < hi) {
+      if (compare1(x2, x2) !== 0)
+        return hi;
+      do {
+        const mid = lo + hi >>> 1;
+        if (compare2(a2[mid], x2) <= 0)
+          lo = mid + 1;
+        else
+          hi = mid;
+      } while (lo < hi);
     }
     return lo;
   }
-  function center(a2, x2, lo, hi) {
-    if (lo == null)
-      lo = 0;
-    if (hi == null)
-      hi = a2.length;
+  function center(a2, x2, lo = 0, hi = a2.length) {
     const i = left(a2, x2, lo, hi - 1);
     return i > lo && delta(a2[i - 1], x2) > -delta(a2[i], x2) ? i - 1 : i;
   }
   return { left, center, right };
 }
-function ascendingComparator(f2) {
-  return (d2, x2) => ascending_default(f2(d2), x2);
-}
 
 // node_modules/d3-array/src/number.js
-function number_default(x2) {
+function number(x2) {
   return x2 === null ? NaN : +x2;
 }
 
 // node_modules/d3-array/src/bisect.js
-var ascendingBisect = bisector_default(ascending_default);
+var ascendingBisect = bisector(ascending);
 var bisectRight = ascendingBisect.right;
 var bisectLeft = ascendingBisect.left;
-var bisectCenter = bisector_default(number_default).center;
+var bisectCenter = bisector(number).center;
 var bisect_default = bisectRight;
 
 // node_modules/d3-array/src/extent.js
-function extent_default(values, valueof) {
+function extent(values, valueof) {
   let min;
   let max;
   if (valueof === void 0) {
@@ -18667,8 +18440,8 @@ function extent_default(values, valueof) {
 var e10 = Math.sqrt(50);
 var e5 = Math.sqrt(10);
 var e2 = Math.sqrt(2);
-function ticks_default(start2, stop, count2) {
-  var reverse, i = -1, n2, ticks, step;
+function ticks(start2, stop, count2) {
+  var reverse, i = -1, n2, ticks2, step;
   stop = +stop, start2 = +start2, count2 = +count2;
   if (start2 === stop && count2 > 0)
     return [start2];
@@ -18682,9 +18455,9 @@ function ticks_default(start2, stop, count2) {
       ++r0;
     if (r1 * step > stop)
       --r1;
-    ticks = new Array(n2 = r1 - r0 + 1);
+    ticks2 = new Array(n2 = r1 - r0 + 1);
     while (++i < n2)
-      ticks[i] = (r0 + i) * step;
+      ticks2[i] = (r0 + i) * step;
   } else {
     step = -step;
     let r0 = Math.round(start2 * step), r1 = Math.round(stop * step);
@@ -18692,13 +18465,13 @@ function ticks_default(start2, stop, count2) {
       ++r0;
     if (r1 / step > stop)
       --r1;
-    ticks = new Array(n2 = r1 - r0 + 1);
+    ticks2 = new Array(n2 = r1 - r0 + 1);
     while (++i < n2)
-      ticks[i] = (r0 + i) / step;
+      ticks2[i] = (r0 + i) / step;
   }
   if (reverse)
-    ticks.reverse();
-  return ticks;
+    ticks2.reverse();
+  return ticks2;
 }
 function tickIncrement(start2, stop, count2) {
   var step = (stop - start2) / Math.max(0, count2), power = Math.floor(Math.log(step) / Math.LN10), error = step / Math.pow(10, power);
@@ -18716,13 +18489,13 @@ function tickStep(start2, stop, count2) {
 }
 
 // node_modules/d3-array/src/range.js
-function range_default(start2, stop, step) {
+function range(start2, stop, step) {
   start2 = +start2, stop = +stop, step = (n2 = arguments.length) < 2 ? (stop = start2, start2 = 0, 1) : n2 < 3 ? 1 : +step;
-  var i = -1, n2 = Math.max(0, Math.ceil((stop - start2) / step)) | 0, range = new Array(n2);
+  var i = -1, n2 = Math.max(0, Math.ceil((stop - start2) / step)) | 0, range2 = new Array(n2);
   while (++i < n2) {
-    range[i] = start2 + i * step;
+    range2[i] = start2 + i * step;
   }
-  return range;
+  return range2;
 }
 
 // node_modules/d3-dispatch/src/dispatch.js
@@ -19138,7 +18911,7 @@ function order_default() {
 // node_modules/d3-selection/src/selection/sort.js
 function sort_default(compare) {
   if (!compare)
-    compare = ascending;
+    compare = ascending2;
   function compareNode(a2, b) {
     return a2 && b ? compare(a2.__data__, b.__data__) : !a2 - !b;
   }
@@ -19152,7 +18925,7 @@ function sort_default(compare) {
   }
   return new Selection(sortgroups, this._parents).order();
 }
-function ascending(a2, b) {
+function ascending2(a2, b) {
   return a2 < b ? -1 : a2 > b ? 1 : a2 >= b ? 0 : NaN;
 }
 
@@ -20095,7 +19868,7 @@ function date_default(a2, b) {
 }
 
 // node_modules/d3-interpolate/src/number.js
-function number_default2(a2, b) {
+function number_default(a2, b) {
   return a2 = +a2, b = +b, function(t2) {
     return a2 * (1 - t2) + b * t2;
   };
@@ -20153,7 +19926,7 @@ function string_default(a2, b) {
         s[++i] = bm;
     } else {
       s[++i] = null;
-      q2.push({ i, x: number_default2(am, bm) });
+      q2.push({ i, x: number_default(am, bm) });
     }
     bi2 = reB.lastIndex;
   }
@@ -20174,7 +19947,7 @@ function string_default(a2, b) {
 // node_modules/d3-interpolate/src/value.js
 function value_default(a2, b) {
   var t2 = typeof b, c3;
-  return b == null || t2 === "boolean" ? constant_default2(b) : (t2 === "number" ? number_default2 : t2 === "string" ? (c3 = color(b)) ? (b = c3, rgb_default) : string_default : b instanceof color ? rgb_default : b instanceof Date ? date_default : isNumberArray(b) ? numberArray_default : Array.isArray(b) ? genericArray : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object_default : number_default2)(a2, b);
+  return b == null || t2 === "boolean" ? constant_default2(b) : (t2 === "number" ? number_default : t2 === "string" ? (c3 = color(b)) ? (b = c3, rgb_default) : string_default : b instanceof color ? rgb_default : b instanceof Date ? date_default : isNumberArray(b) ? numberArray_default : Array.isArray(b) ? genericArray : typeof b.valueOf !== "function" && typeof b.toString !== "function" || isNaN(b) ? object_default : number_default)(a2, b);
 }
 
 // node_modules/d3-interpolate/src/round.js
@@ -20240,7 +20013,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
   function translate(xa, ya, xb, yb, s, q2) {
     if (xa !== xb || ya !== yb) {
       var i = s.push("translate(", null, pxComma, null, pxParen);
-      q2.push({ i: i - 4, x: number_default2(xa, xb) }, { i: i - 2, x: number_default2(ya, yb) });
+      q2.push({ i: i - 4, x: number_default(xa, xb) }, { i: i - 2, x: number_default(ya, yb) });
     } else if (xb || yb) {
       s.push("translate(" + xb + pxComma + yb + pxParen);
     }
@@ -20251,14 +20024,14 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
         b += 360;
       else if (b - a2 > 180)
         a2 += 360;
-      q2.push({ i: s.push(pop(s) + "rotate(", null, degParen) - 2, x: number_default2(a2, b) });
+      q2.push({ i: s.push(pop(s) + "rotate(", null, degParen) - 2, x: number_default(a2, b) });
     } else if (b) {
       s.push(pop(s) + "rotate(" + b + degParen);
     }
   }
   function skewX(a2, b, s, q2) {
     if (a2 !== b) {
-      q2.push({ i: s.push(pop(s) + "skewX(", null, degParen) - 2, x: number_default2(a2, b) });
+      q2.push({ i: s.push(pop(s) + "skewX(", null, degParen) - 2, x: number_default(a2, b) });
     } else if (b) {
       s.push(pop(s) + "skewX(" + b + degParen);
     }
@@ -20266,7 +20039,7 @@ function interpolateTransform(parse, pxComma, pxParen, degParen) {
   function scale(xa, ya, xb, yb, s, q2) {
     if (xa !== xb || ya !== yb) {
       var i = s.push(pop(s) + "scale(", null, ",", null, ")");
-      q2.push({ i: i - 4, x: number_default2(xa, xb) }, { i: i - 2, x: number_default2(ya, yb) });
+      q2.push({ i: i - 4, x: number_default(xa, xb) }, { i: i - 2, x: number_default(ya, yb) });
     } else if (xb !== 1 || yb !== 1) {
       s.push(pop(s) + "scale(" + xb + "," + yb + ")");
     }
@@ -20628,7 +20401,7 @@ function tweenValue(transition2, name, value) {
 // node_modules/d3-transition/src/transition/interpolate.js
 function interpolate_default(a2, b) {
   var c3;
-  return (typeof b === "number" ? number_default2 : b instanceof color ? rgb_default : (c3 = color(b)) ? (b = c3, rgb_default) : string_default)(a2, b);
+  return (typeof b === "number" ? number_default : b instanceof color ? rgb_default : (c3 = color(b)) ? (b = c3, rgb_default) : string_default)(a2, b);
 }
 
 // node_modules/d3-transition/src/transition/attr.js
@@ -21306,7 +21079,7 @@ function data_default2() {
 }
 
 // node_modules/d3-quadtree/src/extent.js
-function extent_default2(_10) {
+function extent_default(_10) {
   return arguments.length ? this.cover(+_10[0][0], +_10[0][1]).cover(+_10[1][0], +_10[1][1]) : isNaN(this._x0) ? void 0 : [[this._x0, this._y0], [this._x1, this._y1]];
 }
 
@@ -21527,7 +21300,7 @@ treeProto.add = add_default;
 treeProto.addAll = addAll;
 treeProto.cover = cover_default;
 treeProto.data = data_default2;
-treeProto.extent = extent_default2;
+treeProto.extent = extent_default;
 treeProto.find = find_default;
 treeProto.remove = remove_default3;
 treeProto.removeAll = removeAll;
@@ -22567,7 +22340,7 @@ function translateChild(k) {
 }
 
 // node_modules/d3-scale/src/init.js
-function initRange(domain, range) {
+function initRange(domain, range2) {
   switch (arguments.length) {
     case 0:
       break;
@@ -22575,7 +22348,7 @@ function initRange(domain, range) {
       this.range(domain);
       break;
     default:
-      this.range(range).domain(domain);
+      this.range(range2).domain(domain);
       break;
   }
   return this;
@@ -22589,7 +22362,7 @@ function constants(x2) {
 }
 
 // node_modules/d3-scale/src/number.js
-function number(x2) {
+function number3(x2) {
   return +x2;
 }
 
@@ -22611,8 +22384,8 @@ function clamper(a2, b) {
     return Math.max(a2, Math.min(b, x2));
   };
 }
-function bimap(domain, range, interpolate) {
-  var d0 = domain[0], d1 = domain[1], r0 = range[0], r1 = range[1];
+function bimap(domain, range2, interpolate) {
+  var d0 = domain[0], d1 = domain[1], r0 = range2[0], r1 = range2[1];
   if (d1 < d0)
     d0 = normalize(d1, d0), r0 = interpolate(r1, r0);
   else
@@ -22621,15 +22394,15 @@ function bimap(domain, range, interpolate) {
     return r0(d0(x2));
   };
 }
-function polymap(domain, range, interpolate) {
-  var j3 = Math.min(domain.length, range.length) - 1, d2 = new Array(j3), r4 = new Array(j3), i = -1;
+function polymap(domain, range2, interpolate) {
+  var j3 = Math.min(domain.length, range2.length) - 1, d2 = new Array(j3), r4 = new Array(j3), i = -1;
   if (domain[j3] < domain[0]) {
     domain = domain.slice().reverse();
-    range = range.slice().reverse();
+    range2 = range2.slice().reverse();
   }
   while (++i < j3) {
     d2[i] = normalize(domain[i], domain[i + 1]);
-    r4[i] = interpolate(range[i], range[i + 1]);
+    r4[i] = interpolate(range2[i], range2[i + 1]);
   }
   return function(x2) {
     var i2 = bisect_default(domain, x2, 1, j3) - 1;
@@ -22640,9 +22413,9 @@ function copy(source, target) {
   return target.domain(source.domain()).range(source.range()).interpolate(source.interpolate()).clamp(source.clamp()).unknown(source.unknown());
 }
 function transformer() {
-  var domain = unit, range = unit, interpolate = value_default, transform2, untransform, unknown, clamp = identity2, piecewise, output, input;
+  var domain = unit, range2 = unit, interpolate = value_default, transform2, untransform, unknown, clamp = identity2, piecewise, output, input;
   function rescale() {
-    var n2 = Math.min(domain.length, range.length);
+    var n2 = Math.min(domain.length, range2.length);
     if (clamp !== identity2)
       clamp = clamper(domain[0], domain[n2 - 1]);
     piecewise = n2 > 2 ? polymap : bimap;
@@ -22650,19 +22423,19 @@ function transformer() {
     return scale;
   }
   function scale(x2) {
-    return x2 == null || isNaN(x2 = +x2) ? unknown : (output || (output = piecewise(domain.map(transform2), range, interpolate)))(transform2(clamp(x2)));
+    return x2 == null || isNaN(x2 = +x2) ? unknown : (output || (output = piecewise(domain.map(transform2), range2, interpolate)))(transform2(clamp(x2)));
   }
   scale.invert = function(y3) {
-    return clamp(untransform((input || (input = piecewise(range, domain.map(transform2), number_default2)))(y3)));
+    return clamp(untransform((input || (input = piecewise(range2, domain.map(transform2), number_default)))(y3)));
   };
   scale.domain = function(_10) {
-    return arguments.length ? (domain = Array.from(_10, number), rescale()) : domain.slice();
+    return arguments.length ? (domain = Array.from(_10, number3), rescale()) : domain.slice();
   };
   scale.range = function(_10) {
-    return arguments.length ? (range = Array.from(_10), rescale()) : range.slice();
+    return arguments.length ? (range2 = Array.from(_10), rescale()) : range2.slice();
   };
   scale.rangeRound = function(_10) {
-    return range = Array.from(_10), interpolate = round_default, rescale();
+    return range2 = Array.from(_10), interpolate = round_default, rescale();
   };
   scale.clamp = function(_10) {
     return arguments.length ? (clamp = _10 ? true : identity2, rescale()) : clamp !== identity2;
@@ -22717,7 +22490,7 @@ function linearish(scale) {
   var domain = scale.domain;
   scale.ticks = function(count2) {
     var d2 = domain();
-    return ticks_default(d2[0], d2[d2.length - 1], count2 == null ? 10 : count2);
+    return ticks(d2[0], d2[d2.length - 1], count2 == null ? 10 : count2);
   };
   scale.tickFormat = function(count2, specifier) {
     var d2 = domain();
@@ -22823,15 +22596,15 @@ function newInterval(floori, offseti, count2, field) {
     return offseti(date = new Date(+date), step == null ? 1 : Math.floor(step)), date;
   };
   interval2.range = function(start2, stop, step) {
-    var range = [], previous;
+    var range2 = [], previous;
     start2 = interval2.ceil(start2);
     step = step == null ? 1 : Math.floor(step);
     if (!(start2 < stop) || !(step > 0))
-      return range;
+      return range2;
     do
-      range.push(previous = new Date(+start2)), offseti(start2, step), floori(start2);
+      range2.push(previous = new Date(+start2)), offseti(start2, step), floori(start2);
     while (previous < start2 && start2 < stop);
-    return range;
+    return range2;
   };
   interval2.filter = function(test) {
     return newInterval(function(date) {
@@ -25828,7 +25601,7 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type", cus
     };
     const items = flattenTree(data);
     const flatTree = colorEncoding === "last-change" ? items.map(lastCommitAccessor).sort((a2, b) => b - a2).slice(0, -8) : items.map(numberOfCommitsAccessor).sort((a2, b) => b - a2).slice(2, -2);
-    const colorExtent2 = extent_default(flatTree);
+    const colorExtent2 = extent(flatTree);
     const colors = [
       "#f4f4f4",
       "#f4f4f4",
@@ -25836,7 +25609,7 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type", cus
       colorEncoding === "last-change" ? "#C7ECEE" : "#FEEAA7",
       colorEncoding === "number-of-changes" ? "#3C40C6" : "#823471"
     ];
-    const colorScale2 = linear2().domain(range_default(0, colors.length).map((i) => +colorExtent2[0] + (colorExtent2[1] - colorExtent2[0]) * i / (colors.length - 1))).range(colors).clamp(true);
+    const colorScale2 = linear2().domain(range(0, colors.length).map((i) => +colorExtent2[0] + (colorExtent2[1] - colorExtent2[0]) * i / (colors.length - 1))).range(colors).clamp(true);
     return { colorScale: colorScale2, colorExtent: colorExtent2 };
   }, [data]);
   const getColor = (d2) => {
@@ -26057,10 +25830,10 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type", cus
   }));
 };
 var formatD = (d2) => typeof d2 === "number" ? d2 : timeFormat("%b %Y")(d2);
-var ColorLegend = ({ scale, extent, colorEncoding }) => {
+var ColorLegend = ({ scale, extent: extent2, colorEncoding }) => {
   if (!scale || !scale.ticks)
     return null;
-  const ticks = scale.ticks(10);
+  const ticks2 = scale.ticks(10);
   return /* @__PURE__ */ import_react2.default.createElement("g", {
     transform: `translate(${width - 160}, ${height - 90})`
   }, /* @__PURE__ */ import_react2.default.createElement("text", {
@@ -26070,10 +25843,10 @@ var ColorLegend = ({ scale, extent, colorEncoding }) => {
     textAnchor: "middle"
   }, colorEncoding === "number-of-changes" ? "Number of changes" : "Last change date"), /* @__PURE__ */ import_react2.default.createElement("linearGradient", {
     id: "gradient"
-  }, ticks.map((tick, i) => {
+  }, ticks2.map((tick, i) => {
     const color2 = scale(tick);
     return /* @__PURE__ */ import_react2.default.createElement("stop", {
-      offset: i / (ticks.length - 1),
+      offset: i / (ticks2.length - 1),
       stopColor: color2,
       key: i
     });
@@ -26082,7 +25855,7 @@ var ColorLegend = ({ scale, extent, colorEncoding }) => {
     width: "100",
     height: "13",
     fill: "url(#gradient)"
-  }), extent.map((d2, i) => /* @__PURE__ */ import_react2.default.createElement("text", {
+  }), extent2.map((d2, i) => /* @__PURE__ */ import_react2.default.createElement("text", {
     key: i,
     x: i ? 100 : 0,
     y: "23",
@@ -26273,7 +26046,7 @@ var main = async () => {
   core.endGroup();
   const rootPath = core.getInput("root_path") || "";
   const maxDepth = core.getInput("max_depth") || 9;
-  const customizeFileColors = JSON.parse(core.getInput("customize_file_colors") || "{}");
+  const customizeFileColors = JSON.parse(core.getInput("file_colors") || "{}");
   const colorEncoding = core.getInput("color_encoding") || "type";
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
