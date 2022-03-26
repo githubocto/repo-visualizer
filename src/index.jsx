@@ -25,7 +25,7 @@ const main = async () => {
 
   const rootPath = core.getInput("root_path") || ""; // Micro and minimatch do not support paths starting with ./
   const maxDepth = core.getInput("max_depth") || 9
-  const customizeFileColors = JSON.parse(core.getInput("file_colors") ||  '{}');
+  const customFileColors = JSON.parse(core.getInput("file_colors") ||  '{}');
   const colorEncoding = core.getInput("color_encoding") || "type"
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram"
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock"
@@ -39,7 +39,7 @@ const main = async () => {
   const data = await processDir(rootPath, excludedPaths, excludedGlobs);
 
   const componentCodeString = ReactDOMServer.renderToStaticMarkup(
-    <Tree data={data} maxDepth={+maxDepth} colorEncoding={colorEncoding} customizeFileColors={customizeFileColors}/>
+    <Tree data={data} maxDepth={+maxDepth} colorEncoding={colorEncoding} customFileColors={customFileColors}/>
   );
 
   const outputFile = core.getInput("output_file") || "./diagram.svg"

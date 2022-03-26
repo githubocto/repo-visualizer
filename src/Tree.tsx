@@ -32,7 +32,7 @@ type Props = {
   filesChanged: string[];
   maxDepth: number;
   colorEncoding: "type" | "number-of-changes" | "last-change"
-  customizeFileColors?: { [key: string]: string };
+  customFileColors?: { [key: string]: string };
 };
 type ExtendedFileType = {
   extension?: string;
@@ -60,10 +60,10 @@ const maxChildren = 9000;
 const lastCommitAccessor = (d) => new Date(d.commits?.[0]?.date + "0");
 const numberOfCommitsAccessor = (d) => d?.commits?.length || 0;
 export const Tree = (
-  { data, filesChanged = [], maxDepth = 9, colorEncoding = "type", customizeFileColors}:
+  { data, filesChanged = [], maxDepth = 9, colorEncoding = "type", customFileColors}:
     Props,
 ) => {
-  const fileColors = { ...defaultFileColors, ...customizeFileColors };
+  const fileColors = { ...defaultFileColors, ...customFileColors };
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const cachedPositions = useRef<{ [key: string]: [number, number] }>({});
   const cachedOrders = useRef<{ [key: string]: string[] }>({});
