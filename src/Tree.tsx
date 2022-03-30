@@ -19,7 +19,7 @@ import entries from "lodash/entries";
 import uniqBy from "lodash/uniqBy";
 import flatten from "lodash/flatten";
 // file colors are from the github/linguist repo
-import fileColors from "./language-colors.json";
+import defaultFileColors from "./language-colors.json";
 import { CircleText } from "./CircleText";
 import {
   keepBetween,
@@ -32,6 +32,7 @@ type Props = {
   filesChanged: string[];
   maxDepth: number;
   colorEncoding: "type" | "number-of-changes" | "last-change"
+  customFileColors?: { [key: string]: string };
 };
 type ExtendedFileType = {
   extension?: string;
@@ -40,6 +41,7 @@ type ExtendedFileType = {
   color?: string;
   value?: number;
   sortOrder?: number;
+  fileColors?: { [key: string]: string };
 } & FileType;
 type ProcessedDataItem = {
   data: ExtendedFileType;
@@ -58,9 +60,10 @@ const maxChildren = 9000;
 const lastCommitAccessor = (d) => new Date(d.commits?.[0]?.date + "0");
 const numberOfCommitsAccessor = (d) => d?.commits?.length || 0;
 export const Tree = (
-  { data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }:
+  { data, filesChanged = [], maxDepth = 9, colorEncoding = "type", customFileColors}:
     Props,
 ) => {
+  const fileColors = { ...defaultFileColors, ...customFileColors };
   const [selectedNodeId, setSelectedNodeId] = useState(null);
   const cachedPositions = useRef<{ [key: string]: [number, number] }>({});
   const cachedOrders = useRef<{ [key: string]: string[] }>({});
@@ -121,7 +124,7 @@ export const Tree = (
   const packedData = useMemo(() => {
     if (!data) return [];
     const hierarchicalData = hierarchy(
-      processChild(data, getColor, cachedOrders.current),
+      processChild(data, getColor, cachedOrders.current, 0, fileColors),
     ).sum((d) => d.value)
       .sort((a, b) => {
         if (b.data.path.startsWith("src/fonts")) {
@@ -171,7 +174,7 @@ export const Tree = (
     });
 
     return children.slice(0, maxChildren);
-  }, [data]);
+  }, [data, fileColors]);
 
   const selectedNode = selectedNodeId &&
     packedData.find((d) => d.data.path === selectedNodeId);
@@ -379,7 +382,7 @@ export const Tree = (
       })}
 
       {!filesChanged.length && colorEncoding === "type" &&
-        <Legend fileTypes={fileTypes} />}
+        <Legend fileTypes={fileTypes} fileColors={fileColors}/>}
       {!filesChanged.length && colorEncoding !== "type" &&
         <ColorLegend scale={colorScale} extent={colorExtent} colorEncoding={colorEncoding} />}
     </svg>
@@ -429,7 +432,7 @@ const ColorLegend = ({ scale, extent, colorEncoding }) => {
   );
 };
 
-const Legend = ({ fileTypes = [] }) => {
+const Legend = ({ fileTypes = [], fileColors}) => {
   return (
     <g
       transform={`translate(${width - 60}, ${height - fileTypes.length * 15 -
@@ -469,13 +472,14 @@ const processChild = (
   getColor,
   cachedOrders,
   i = 0,
+  fileColors
 ): ExtendedFileType => {
   if (!child) return;
   const isRoot = !child.path;
   let name = child.name;
   let path = child.path;
   let children = child?.children?.map((c, i) =>
-    processChild(c, getColor, cachedOrders, i)
+    processChild(c, getColor, cachedOrders, i, fileColors)
   );
   if (children?.length === 1) {
     name = `${name}/${children[0].name}`;

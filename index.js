@@ -25814,7 +25814,8 @@ var numberOfCommitsAccessor = (d2) => {
   var _a;
   return ((_a = d2 == null ? void 0 : d2.commits) == null ? void 0 : _a.length) || 0;
 };
-var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) => {
+var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type", customFileColors }) => {
+  const fileColors = { ...language_colors_default, ...customFileColors };
   const [selectedNodeId, setSelectedNodeId] = (0, import_react2.useState)(null);
   const cachedPositions = (0, import_react2.useRef)({});
   const cachedOrders = (0, import_react2.useRef)({});
@@ -25845,9 +25846,9 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) =
       if (isParent) {
         const extensions = (0, import_countBy.default)(d2.children, (c3) => c3.extension);
         const mainExtension = (_a = (0, import_maxBy.default)((0, import_entries.default)(extensions), ([k, v2]) => v2)) == null ? void 0 : _a[0];
-        return language_colors_default[mainExtension] || "#CED6E0";
+        return fileColors[mainExtension] || "#CED6E0";
       }
-      return language_colors_default[d2.extension] || "#CED6E0";
+      return fileColors[d2.extension] || "#CED6E0";
     } else if (colorEncoding === "number-of-changes") {
       return colorScale(numberOfCommitsAccessor(d2)) || "#f4f4f4";
     } else if (colorEncoding === "last-change") {
@@ -25857,7 +25858,7 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) =
   const packedData = (0, import_react2.useMemo)(() => {
     if (!data)
       return [];
-    const hierarchicalData = hierarchy(processChild(data, getColor, cachedOrders.current)).sum((d2) => d2.value).sort((a2, b) => {
+    const hierarchicalData = hierarchy(processChild(data, getColor, cachedOrders.current, 0, fileColors)).sum((d2) => d2.value).sort((a2, b) => {
       if (b.data.path.startsWith("src/fonts")) {
       }
       return b.data.sortOrder - a2.data.sortOrder || (b.data.name > a2.data.name ? 1 : -1);
@@ -25888,9 +25889,9 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) =
       cachedPositions.current[d2.data.path] = [d2.x, d2.y];
     });
     return children2.slice(0, maxChildren);
-  }, [data]);
+  }, [data, fileColors]);
   const selectedNode = selectedNodeId && packedData.find((d2) => d2.data.path === selectedNodeId);
-  const fileTypes = (0, import_uniqBy.default)(packedData.map((d2) => language_colors_default[d2.data.extension] && d2.data.extension)).sort().filter(Boolean);
+  const fileTypes = (0, import_uniqBy.default)(packedData.map((d2) => fileColors[d2.data.extension] && d2.data.extension)).sort().filter(Boolean);
   return /* @__PURE__ */ import_react2.default.createElement("svg", {
     width,
     height,
@@ -26047,7 +26048,8 @@ var Tree = ({ data, filesChanged = [], maxDepth = 9, colorEncoding = "type" }) =
       dominantBaseline: "middle"
     }, label));
   }), !filesChanged.length && colorEncoding === "type" && /* @__PURE__ */ import_react2.default.createElement(Legend, {
-    fileTypes
+    fileTypes,
+    fileColors
   }), !filesChanged.length && colorEncoding !== "type" && /* @__PURE__ */ import_react2.default.createElement(ColorLegend, {
     scale: colorScale,
     extent: colorExtent,
@@ -26088,7 +26090,7 @@ var ColorLegend = ({ scale, extent, colorEncoding }) => {
     textAnchor: i ? "end" : "start"
   }, formatD(d2))));
 };
-var Legend = ({ fileTypes = [] }) => {
+var Legend = ({ fileTypes = [], fileColors }) => {
   return /* @__PURE__ */ import_react2.default.createElement("g", {
     transform: `translate(${width - 60}, ${height - fileTypes.length * 15 - 20})`
   }, fileTypes.map((extension, i) => /* @__PURE__ */ import_react2.default.createElement("g", {
@@ -26096,7 +26098,7 @@ var Legend = ({ fileTypes = [] }) => {
     transform: `translate(0, ${i * 15})`
   }, /* @__PURE__ */ import_react2.default.createElement("circle", {
     r: "5",
-    fill: language_colors_default[extension]
+    fill: fileColors[extension]
   }), /* @__PURE__ */ import_react2.default.createElement("text", {
     x: "10",
     style: { fontSize: "14px", fontWeight: 300 },
@@ -26110,14 +26112,14 @@ var Legend = ({ fileTypes = [] }) => {
     }
   }, "each dot sized by file size"));
 };
-var processChild = (child, getColor, cachedOrders, i = 0) => {
+var processChild = (child, getColor, cachedOrders, i = 0, fileColors) => {
   var _a;
   if (!child)
     return;
   const isRoot = !child.path;
   let name = child.name;
   let path = child.path;
-  let children2 = (_a = child == null ? void 0 : child.children) == null ? void 0 : _a.map((c3, i2) => processChild(c3, getColor, cachedOrders, i2));
+  let children2 = (_a = child == null ? void 0 : child.children) == null ? void 0 : _a.map((c3, i2) => processChild(c3, getColor, cachedOrders, i2, fileColors));
   if ((children2 == null ? void 0 : children2.length) === 1) {
     name = `${name}/${children2[0].name}`;
     path = children2[0].path;
@@ -26125,7 +26127,7 @@ var processChild = (child, getColor, cachedOrders, i = 0) => {
   }
   const pathWithoutExtension = path == null ? void 0 : path.split(".").slice(0, -1).join(".");
   const extension = name == null ? void 0 : name.split(".").slice(-1)[0];
-  const hasExtension = !!language_colors_default[extension];
+  const hasExtension = !!fileColors[extension];
   if (isRoot && children2) {
     const looseChildren = children2 == null ? void 0 : children2.filter((d2) => {
       var _a2;
@@ -26271,6 +26273,7 @@ var main = async () => {
   core.endGroup();
   const rootPath = core.getInput("root_path") || "";
   const maxDepth = core.getInput("max_depth") || 9;
+  const customFileColors = JSON.parse(core.getInput("file_colors") || "{}");
   const colorEncoding = core.getInput("color_encoding") || "type";
   const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
@@ -26282,7 +26285,8 @@ var main = async () => {
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data,
     maxDepth: +maxDepth,
-    colorEncoding
+    colorEncoding,
+    customFileColors
   }));
   const outputFile = core.getInput("output_file") || "./diagram.svg";
   core.setOutput("svg", componentCodeString);
