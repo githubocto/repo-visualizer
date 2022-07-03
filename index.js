@@ -26275,7 +26275,7 @@ var main = async () => {
   const maxDepth = core.getInput("max_depth") || 9;
   const customFileColors = JSON.parse(core.getInput("file_colors") || "{}");
   const colorEncoding = core.getInput("color_encoding") || "type";
-  const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram";
+  const commitMessage = core.getInput("commit_message") || "Repo visualizer: update diagram";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
   const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
   const excludedGlobsString = core.getInput("excluded_globs") || "";
@@ -26295,8 +26295,11 @@ var main = async () => {
   if (branch) {
     await (0, import_exec.exec)("git", ["fetch"]);
     try {
-      await (0, import_exec.exec)("git", ["rev-parse", "--verify", branch]);
+      const tempPath = `../${outputFile}`;
+      await (0, import_exec.exec)("git", ["rev-parse", "--verify", `origin/${branch}`]);
+      await (0, import_exec.exec)("mv", [outputFile, tempPath]);
       await (0, import_exec.exec)("git", ["checkout", branch]);
+      await (0, import_exec.exec)("mv", [tempPath, "."]);
     } catch {
       doesBranchExist = false;
       core.info(`Branch ${branch} does not yet exist, creating ${branch}.`);
