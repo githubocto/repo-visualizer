@@ -54,8 +54,7 @@ const main = async () => {
     await exec('git', ['fetch'])
 
     try {
-      await exec('git', ['rev-parse', '--verify', branch])
-      await exec('git', ['checkout', branch])
+      await exec('git', ['switch', '-c' , branch,'--track', `origin/${branch}`])
     } catch {
       doesBranchExist = false
       core.info(`Branch ${branch} does not yet exist, creating ${branch}.`)
