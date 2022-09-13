@@ -26275,13 +26275,24 @@ var main = async () => {
   const maxDepth = core.getInput("max_depth") || 9;
   const customFileColors = JSON.parse(core.getInput("file_colors") || "{}");
   const colorEncoding = core.getInput("color_encoding") || "type";
-  const commitMessage = core.getInput("commit_message") || "Repo visualizer: updated diagram";
+  const commitMessage = core.getInput("commit_message") || "Repo visualizer: update diagram";
   const excludedPathsString = core.getInput("excluded_paths") || "node_modules,bower_components,dist,out,build,eject,.next,.netlify,.yarn,.git,.vscode,package-lock.json,yarn.lock";
   const excludedPaths = excludedPathsString.split(",").map((str) => str.trim());
   const excludedGlobsString = core.getInput("excluded_globs") || "";
   const excludedGlobs = excludedGlobsString.split(";");
   const branch = core.getInput("branch");
   const data = await processDir(rootPath, excludedPaths, excludedGlobs);
+  let doesBranchExist = true;
+  if (branch) {
+    await (0, import_exec.exec)("git", ["fetch"]);
+    try {
+      await (0, import_exec.exec)("git", ["switch", "-c", branch, "--track", `origin/${branch}`]);
+    } catch {
+      doesBranchExist = false;
+      core.info(`Branch ${branch} does not yet exist, creating ${branch}.`);
+      await (0, import_exec.exec)("git", ["checkout", "-b", branch]);
+    }
+  }
   const componentCodeString = import_server.default.renderToStaticMarkup(/* @__PURE__ */ import_react3.default.createElement(Tree, {
     data,
     maxDepth: +maxDepth,
@@ -26291,18 +26302,6 @@ var main = async () => {
   const outputFile = core.getInput("output_file") || "./diagram.svg";
   core.setOutput("svg", componentCodeString);
   await import_fs2.default.writeFileSync(outputFile, componentCodeString);
-  let doesBranchExist = true;
-  if (branch) {
-    await (0, import_exec.exec)("git", ["fetch"]);
-    try {
-      await (0, import_exec.exec)("git", ["rev-parse", "--verify", branch]);
-      await (0, import_exec.exec)("git", ["checkout", branch]);
-    } catch {
-      doesBranchExist = false;
-      core.info(`Branch ${branch} does not yet exist, creating ${branch}.`);
-      await (0, import_exec.exec)("git", ["checkout", "-b", branch]);
-    }
-  }
   await (0, import_exec.exec)("git", ["add", outputFile]);
   const diff = await execWithOutput("git", ["status", "--porcelain", outputFile]);
   core.info(`diff: ${diff}`);
