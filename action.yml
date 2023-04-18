@@ -39,7 +39,7 @@ outputs:
   svg:
     description: "The diagram contents as text"
 runs:
-  using: "node12"
+  using: "node16"
   main: "index.js"
 branding:
   color: "purple"
