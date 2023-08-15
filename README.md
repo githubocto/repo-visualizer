@@ -82,7 +82,7 @@ Default: `''` (no artifact)
 
 ### `file_colors`
 
-You can customize the colors for specific file extensions. Key/value pairs will extend the [default colors](https://github.com/githubocto/repo-visualizer/pull/src/language-colors.json).
+You can customize the colors for specific file extensions. Key/value pairs will extend the [default colors](https://github.com/githubocto/repo-visualizer/blob/main/src/language-colors.json).
 
 For example: '{"js": "red","ts": "green"}'
 default: '{}'
