@@ -1,0 +1,20 @@
+name: testing yaml for github
+
+on:
+  push:
+    branches:
+    - main
+
+     steps:
+        - name: Check out Git repository
+          uses: actions/checkout@v2
+  
+        - name: Set up Node.js
+          uses: actions/setup-node@v1
+          with:
+            node-version: 14
+        - name: Install dependencies with caching
+          uses: bahmutov/npm-install@v1
+ 
+    
+        
