@@ -1,10 +1,75 @@
 # Repo Visualizer
 
-A GitHub Action that creates an SVG diagram of your repo. Read more [in the writeup](https://octo.github.com/projects/repo-visualization).
+A tool that creates SVG diagrams of your repository structure. Available as both a GitHub Action and a command-line tool.
+
+Read more [in the writeup](https://octo.github.com/projects/repo-visualization).
 
 **Please note that this is an experiment. If you have feature requests, please submit a PR or fork and use the code any way you need.**
 
 For a full demo, check out the [githubocto/repo-visualizer-demo](https://github.com/githubocto/repo-visualizer-demo) repository.
+
+## Command Line Interface
+
+The repo visualizer can now be used as a command-line tool to generate diagrams locally.
+
+### Installation
+
+```bash
+npm install -g repo-visualizer
+```
+
+Or use it directly with npx:
+
+```bash
+npx repo-visualizer generate
+```
+
+### Usage
+
+```bash
+repo-visualizer generate [options]
+```
+
+#### Options
+
+- `-o, --output <file>` - Output file path (default: "diagram.svg")
+- `-p, --path <path>` - Root path to visualize (default: current directory)
+- `-d, --max-depth <number>` - Maximum depth of nested folders (default: 9)
+- `-e, --exclude <paths>` - Comma-separated list of paths to exclude
+- `-g, --exclude-globs <globs>` - Semicolon-separated list of glob patterns to exclude
+- `-c, --color-encoding <type>` - Color encoding type (type, number-of-changes, last-change)
+- `--file-colors <json>` - Custom file colors as JSON string
+- `--width <number>` - Diagram width (default: 1000)
+- `--height <number>` - Diagram height (default: 1000)
+
+#### Examples
+
+```bash
+# Generate a basic diagram
+repo-visualizer generate
+
+# Generate a diagram of the src directory with max depth 5
+repo-visualizer generate -p src -d 5
+
+# Generate a diagram with custom output file
+repo-visualizer generate -o my-diagram.svg
+
+# Generate a diagram excluding specific paths and file types
+repo-visualizer generate --exclude "node_modules,dist" --exclude-globs "*.test.js;**/*.spec.ts"
+
+# Generate a diagram with custom file colors
+repo-visualizer generate --file-colors '{"js": "red", "ts": "blue"}'
+```
+
+#### Development Usage
+
+If you're working with the source code, you can use the npm script:
+
+```bash
+npm run cli generate -o diagram.svg
+```
+
+## GitHub Action
 
 ## Inputs
 
