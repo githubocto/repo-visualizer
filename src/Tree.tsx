@@ -13,11 +13,8 @@ import {
   timeFormat,
 } from "d3";
 import { FileType } from "./types";
-import countBy from "lodash/countBy";
-import maxBy from "lodash/maxBy";
-import entries from "lodash/entries";
-import uniqBy from "lodash/uniqBy";
-import flatten from "lodash/flatten";
+import { countBy, maxBy, entries, uniqBy } from "lodash";
+import { flatten } from "lodash";
 // file colors are from the github/linguist repo
 import defaultFileColors from "./language-colors.json";
 import { CircleText } from "./CircleText";
@@ -181,6 +178,7 @@ export const Tree = (
 
   const fileTypes = uniqBy(
     packedData.map((d) => fileColors[d.data.extension] && d.data.extension),
+    (item) => item
   ).sort().filter(Boolean);
 
 

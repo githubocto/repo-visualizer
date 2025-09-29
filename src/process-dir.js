@@ -1,9 +1,9 @@
-import fs from "fs";
-import * as nodePath from 'path';
-import { shouldExcludePath } from './should-exclude-path';
+const fs = require("fs");
+const nodePath = require('path');
+const { shouldExcludePath } = require('./should-exclude-path.ts');
 
 
-export const processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) => {
+const processDir = async (rootPath = "", excludedPaths = [], excludedGlobs = []) => {
   const foldersToIgnore = [".git", ...excludedPaths]
   const fullPathFoldersToIgnore = new Set(foldersToIgnore.map((d) =>
     nodePath.join(rootPath, d)
@@ -66,3 +66,5 @@ export const processDir = async (rootPath = "", excludedPaths = [], excludedGlob
 
   return tree;
 };
+
+module.exports = { processDir };
